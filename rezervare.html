@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelFinder — Rezervare</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold:       #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim:   rgba(201,168,76,0.13);
+    --gold-line:  rgba(201,168,76,0.25);
+    --black:      #080808;
+    --dark:       #0F0F0F;
+    --dark2:      #161616;
+    --dark3:      #1E1E1E;
+    --dark4:      #272727;
+    --text:       #EDE8DE;
+    --text-muted: #8A7D65;
+    --text-faint: #4A4035;
+    --red:        #E05252;
+    --green:      #52C07A;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'Montserrat', sans-serif;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-line); }
+  html { scroll-behavior: smooth; }
+  body { background: var(--dark); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 68px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 3rem;
+    background: rgba(8,8,8,0.94); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--gold-line);
+  }
+  .nav-logo { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-back { display: flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--gold); }
+
+  /* STEPS INDICATOR */
+  .steps-bar {
+    position: fixed; top: 68px; left: 0; right: 0; z-index: 99;
+    background: var(--dark2); border-bottom: 1px solid var(--gold-line);
+    display: flex; align-items: stretch; height: 56px;
+  }
+  .step-item {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 12px; cursor: pointer; transition: background 0.2s;
+    border-right: 1px solid var(--gold-line); position: relative;
+  }
+  .step-item:last-child { border-right: none; }
+  .step-item.done { cursor: pointer; }
+  .step-item.done:hover { background: var(--gold-dim); }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid var(--text-faint);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500; color: var(--text-faint);
+    flex-shrink: 0; transition: all 0.3s;
+  }
+  .step-item.active .step-num { border-color: var(--gold); color: var(--black); background: var(--gold); }
+  .step-item.done .step-num   { border-color: var(--green); color: var(--green); background: transparent; }
+  .step-item.done .step-num::after { content: '✓'; font-size: 11px; }
+  .step-item.done .step-num span   { display: none; }
+  .step-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint); transition: color 0.3s; }
+  .step-item.active .step-label { color: var(--gold); }
+  .step-item.done .step-label   { color: var(--text-muted); }
+  .step-progress {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: transparent; transition: background 0.3s;
+  }
+  .step-item.active .step-progress { background: var(--gold); }
+  .step-item.done .step-progress   { background: var(--green); }
+
+  /* MAIN LAYOUT */
+  .page { padding: 148px 3rem 4rem; max-width: 1100px; margin: 0 auto; }
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 3rem; }
+
+  /* HOTEL SUMMARY CARD (sidebar) */
+  .hotel-card {
+    position: sticky; top: 140px; height: fit-content;
+    background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px;
+  }
+  .hotel-card-img {
+    height: 160px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; opacity: 0.3; background: var(--dark3);
+  }
+  .hotel-card-img img { width: 100%; height: 100%; object-fit: cover; opacity: 1; font-size: 0; }
+  .hotel-card-body { padding: 20px; }
+  .hc-label { font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .hc-name { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--text); margin-bottom: 4px; }
+  .hc-location { font-size: 10px; color: var(--text-faint); margin-bottom: 16px; }
+  .hc-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 14px 0; }
+  .hc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .hc-key { font-size: 10px; color: var(--text-faint); }
+  .hc-val { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+  .hc-total-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gold-line); }
+  .hc-total-label { font-size: 11px; font-weight: 500; color: var(--text); }
+  .hc-total-val { font-family: var(--serif); font-size: 26px; font-weight: 300; color: var(--gold); }
+
+  /* STEP FORMS */
+  .step-form { display: none; animation: fadeIn 0.4s ease both; }
+  .step-form.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .form-section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px; margin-top: 2rem;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .form-section-title:first-child { margin-top: 0; }
+  .form-section-title::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); }
+
+  .step-header { margin-bottom: 2rem; }
+  .step-eyebrow { font-size: 9px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .step-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--gold-line); }
+  .step-title { font-family: var(--serif); font-size: 36px; font-weight: 300; color: var(--text); }
+  .step-title em { font-style: italic; color: var(--gold); }
+  .step-sub { font-size: 12px; font-weight: 300; color: var(--text-muted); margin-top: 8px; line-height: 1.7; }
+
+  /* FIELDS */
+  .field-row { display: flex; gap: 14px; }
+  .field-row .field-group { flex: 1; }
+  .field-group { margin-bottom: 18px; }
+  .field-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+  .field-input {
+    width: 100%; background: var(--dark2); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 1px; outline: none;
+    font-family: var(--sans); font-size: 13px; font-weight: 300;
+    color: var(--text); padding: 12px 16px; transition: border-color 0.2s;
+  }
+  .field-input::placeholder { color: var(--text-faint); }
+  .field-input:focus { border-color: var(--gold-line); }
+  .field-input.error { border-color: var(--red); }
+  .field-input[readonly] { opacity: 0.6; cursor: not-allowed; }
+  .field-hint { font-size: 9px; color: var(--text-faint); margin-top: 5px; }
+
+  /* DATE FIELDS */
+  .dates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--gold-line); border: 1px solid var(--gold-line); border-radius: 1px; overflow: hidden; margin-bottom: 18px; }
+  .date-field { background: var(--dark2); padding: 14px 16px; }
+  .date-label { font-size: 8px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .date-input { background: transparent; border: none; outline: none; font-family: var(--sans); font-size: 13px; font-weight: 300; color: var(--text); width: 100%; cursor: pointer; }
+  .date-input::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+
+  /* CAMERA TYPE */
+  .room-types { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .room-type {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 1px; padding: 16px 18px; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }
+  .room-type:hover { border-color: var(--gold-line); }
+  .room-type.selected { border-color: var(--gold); background: var(--gold-dim); }
+  .room-type input[type="radio"] { display: none; }
+  .room-radio {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid var(--text-faint); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .room-type.selected .room-radio { border-color: var(--gold); }
+  .room-radio::after {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold); display: none;
+  }
+  .room-type.selected .room-radio::after { display: block; }
+  .room-info { flex: 1; }
+  .room-name { font-size: 13px; font-weight: 400; color: var(--text); margin-bottom: 3px; }
+  .room-desc { font-size: 11px; font-weight: 300; color: var(--text-muted); }
+  .room-price { font-family: var(--serif); font-size: 20px; font-weight: 300; color: var(--gold); }
+  .room-badge { position: absolute; top: 10px; right: 10px; font-size: 8px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; background: var(--gold); color: var(--black); padding: 3px 8px; border-radius: 1px; }
+
+  /* SERVICES */
+  .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .service-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 1px; padding: 13px 15px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .service-item:hover { border-color: var(--gold-line); }
+  .service-item.selected { border-color: var(--gold); background: var(--gold-dim); }
+  .service-check {
+    width: 16px; height: 16px; border-radius: 1px;
+    border: 1px solid var(--text-faint); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; transition: all 0.2s;
+  }
+  .service-item.selected .service-check { border-color: var(--gold); color: var(--gold); }
+  .service-icon { font-size: 16px; }
+  .service-info { flex: 1; }
+  .service-name { font-size: 11px; font-weight: 400; color: var(--text); }
+  .service-price { font-size: 10px; color: var(--text-faint); }
+
+  /* SUMMARY TABLE */
+  .summary-table { background: var(--dark2); border: 1px solid rgba(255,255,255,0.04); border-radius: 1px; overflow: hidden; margin-bottom: 2rem; }
+  .summary-section { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .summary-section:last-child { border-bottom: none; }
+  .summary-section-title { font-size: 9px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .summary-row:last-child { margin-bottom: 0; }
+  .summary-key { font-size: 11px; font-weight: 300; color: var(--text-muted); }
+  .summary-val { font-size: 11px; font-weight: 400; color: var(--text); }
+  .summary-total { background: var(--gold-dim); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .summary-total-label { font-size: 12px; font-weight: 500; color: var(--text); }
+  .summary-total-val { font-family: var(--serif); font-size: 32px; font-weight: 300; color: var(--gold); }
+
+  /* TERMS */
+  .terms-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; cursor: pointer; }
+  .terms-row input { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; accent-color: var(--gold); cursor: pointer; }
+  .terms-text { font-size: 11px; font-weight: 300; color: var(--text-muted); line-height: 1.7; }
+  .terms-text a { color: var(--gold); text-decoration: none; }
+
+  /* ALERT */
+  .alert { border-radius: 1px; padding: 13px 16px; margin-bottom: 18px; font-size: 11px; font-weight: 300; display: none; align-items: center; gap: 10px; line-height: 1.6; }
+  .alert.visible { display: flex; }
+  .alert.error   { background: rgba(224,82,82,0.1); border: 1px solid rgba(224,82,82,0.25); color: #F09090; }
+  .alert.success { background: rgba(82,192,122,0.1); border: 1px solid rgba(82,192,122,0.25); color: #90D0A8; }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 12px; margin-top: 2rem; }
+  .btn-back {
+    background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 1px;
+    padding: 14px 22px; font-family: var(--sans); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--gold-line); color: var(--text); }
+  .btn-next {
+    flex: 1; background: var(--gold); border: 1px solid var(--gold); border-radius: 1px;
+    padding: 15px; font-family: var(--sans); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--black);
+    cursor: pointer; transition: all 0.25s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-next:hover:not(:disabled) { background: var(--gold-light); border-color: var(--gold-light); }
+  .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-next .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.3); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .btn-next.loading .btn-text { display: none; }
+  .btn-next.loading .spinner  { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SUCCESS STATE */
+  .success-page { display: none; text-align: center; padding: 4rem 2rem; }
+  .success-page.visible { display: block; animation: fadeIn 0.6s ease; }
+  .success-icon { width: 80px; height: 80px; border-radius: 50%; border: 1px solid var(--gold-line); display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 36px; color: var(--gold); margin: 0 auto 28px; }
+  .success-title { font-family: var(--serif); font-size: 44px; font-weight: 300; color: var(--text); margin-bottom: 12px; line-height: 1.1; }
+  .success-title em { font-style: italic; color: var(--gold); }
+  .success-sub { font-size: 13px; font-weight: 300; color: var(--text-muted); line-height: 1.9; margin-bottom: 36px; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .success-code { display: inline-block; font-family: var(--serif); font-size: 28px; color: var(--gold); letter-spacing: 0.1em; padding: 14px 32px; border: 1px solid var(--gold-line); border-radius: 1px; margin-bottom: 36px; }
+  .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-outline { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); padding: 12px 28px; border: 1px solid var(--gold-line); border-radius: 1px; text-decoration: none; transition: all 0.2s; }
+  .btn-outline:hover { background: var(--gold-dim); }
+
+  /* PAGE LOADER */
+  .page-loader { position: fixed; inset: 0; z-index: 500; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.5s; }
+  .page-loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-ring { width: 44px; height: 44px; border: 1px solid var(--gold-line); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loader-text { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 15px 22px; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s ease; min-width: 280px; }
+  .toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 16px; color: var(--gold); }
+  .toast-text { font-size: 12px; color: var(--text); }
+
+  /* GUEST NOT LOGGED */
+  .guest-notice { background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 20px 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+  .gn-icon { font-size: 20px; color: var(--gold); }
+  .gn-text { font-size: 12px; font-weight: 300; color: var(--text-muted); line-height: 1.7; }
+  .gn-text a { color: var(--gold); text-decoration: none; font-weight: 400; }
+
+  @media (max-width: 900px) {
+    nav, .steps-bar { padding: 0 1.5rem; }
+    .page { padding: 148px 1.5rem 4rem; }
+    .layout { grid-template-columns: 1fr; }
+    .hotel-card { position: static; margin-bottom: 2rem; }
+    .services-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="page-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Se pregătește rezervarea</div>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Hotel<span>Finder</span></a>
+  <a class="nav-back" id="back-link" href="index.html">← Înapoi la hotel</a>
+</nav>
+
+<div class="steps-bar">
+  <div class="step-item active" id="si-1" onclick="tryGoStep(1)">
+    <div class="step-num"><span>1</span></div>
+    <div class="step-label">Detalii</div>
+    <div class="step-progress"></div>
+  </div>
+  <div class="step-item" id="si-2" onclick="tryGoStep(2)">
+    <div class="step-num"><span>2</span></div>
+    <div class="step-label">Camera & Servicii</div>
+    <div class="step-progress"></div>
+  </div>
+  <div class="step-item" id="si-3" onclick="tryGoStep(3)">
+    <div class="step-num"><span>3</span></div>
+    <div class="step-label">Confirmare</div>
+    <div class="step-progress"></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="layout">
+
+    <!-- LEFT: STEPS -->
+    <div>
+
+      <!-- STEP 1: Detalii -->
+      <div class="step-form active" id="step-1">
+        <div class="step-header">
+          <div class="step-eyebrow">Pasul 1 din 3</div>
+          <div class="step-title">Detalii <em>Rezervare</em></div>
+          <div class="step-sub">Completează datele sejurului tău.</div>
+        </div>
+
+        <div id="guest-notice-wrap"></div>
+        <div class="alert" id="alert-1"><span id="alert-1-icon">⚠</span><span id="alert-1-text"></span></div>
+
+        <div class="form-section-title">Date sejur</div>
+        <div class="dates-grid">
+          <div class="date-field">
+            <div class="date-label">Check-in</div>
+            <input type="date" class="date-input" id="checkin" onchange="updateSidebar()">
+          </div>
+          <div class="date-field">
+            <div class="date-label">Check-out</div>
+            <input type="date" class="date-input" id="checkout" onchange="updateSidebar()">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="guests">Număr oaspeți</label>
+            <select class="field-input" id="guests" onchange="updateSidebar()">
+              <option value="1">1 adult</option>
+              <option value="2" selected>2 adulți</option>
+              <option value="3">3 adulți</option>
+              <option value="4">4 adulți</option>
+              <option value="5">5+ adulți</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="children">Copii</label>
+            <select class="field-input" id="children">
+              <option value="0">Fără copii</option>
+              <option value="1">1 copil</option>
+              <option value="2">2 copii</option>
+              <option value="3">3+ copii</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">Date de contact</div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="first-name">Prenume</label>
+            <input class="field-input" type="text" id="first-name" placeholder="Ion" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="last-name">Nume</label>
+            <input class="field-input" type="text" id="last-name" placeholder="Popescu" required>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="email">Email</label>
+          <input class="field-input" type="email" id="email" placeholder="exemplu@email.com" required>
+          <div class="field-hint">Confirmarea se va trimite la această adresă.</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="phone">Telefon</label>
+          <input class="field-input" type="tel" id="phone" placeholder="+40 7xx xxx xxx">
+        </div>
+
+        <div class="form-section-title">Cerințe speciale</div>
+        <div class="field-group">
+          <label class="field-label" for="requests">Mențiuni (opțional)</label>
+          <textarea class="field-input" id="requests" rows="3" placeholder="Etaj înalt, pat suplimentar, cameră cu vedere, aniversare..." style="resize:vertical;"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-next" onclick="goStep(2)">
+            <span class="btn-text">Continuă →</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Camera & Servicii -->
+      <div class="step-form" id="step-2">
+        <div class="step-header">
+          <div class="step-eyebrow">Pasul 2 din 3</div>
+          <div class="step-title">Camera & <em>Servicii</em></div>
+          <div class="step-sub">Alege tipul camerei și serviciile dorite.</div>
+        </div>
+
+        <div class="alert" id="alert-2"><span id="alert-2-icon">⚠</span><span id="alert-2-text"></span></div>
+
+        <div class="form-section-title">Tip cameră</div>
+        <div class="room-types" id="room-types">
+          <label class="room-type selected" onclick="selectRoom(this, 0)">
+            <input type="radio" name="room" value="standard" checked>
+            <div class="room-radio"></div>
+            <div class="room-info">
+              <div class="room-name">Cameră Standard</div>
+              <div class="room-desc">Pat dublu · 25m² · Baie proprie · Vedere la curte</div>
+            </div>
+            <div class="room-price" id="price-standard">— RON</div>
+          </label>
+          <label class="room-type" onclick="selectRoom(this, 50)">
+            <input type="radio" name="room" value="deluxe">
+            <div class="room-radio"></div>
+            <div class="room-info">
+              <div class="room-name">Cameră Deluxe</div>
+              <div class="room-desc">Pat King · 35m² · Baie de lux · Vedere panoramică</div>
+            </div>
+            <div class="room-price" id="price-deluxe">— RON</div>
+            <div class="room-badge">Popular</div>
+          </label>
+          <label class="room-type" onclick="selectRoom(this, 120)">
+            <input type="radio" name="room" value="suite">
+            <div class="room-radio"></div>
+            <div class="room-info">
+              <div class="room-name">Suite Executivă</div>
+              <div class="room-desc">Dormitor separat · 60m² · Jacuzzi · Lounge privat</div>
+            </div>
+            <div class="room-price" id="price-suite">— RON</div>
+          </label>
+        </div>
+
+        <div class="form-section-title">Servicii suplimentare</div>
+        <div class="services-grid">
+          <div class="service-item" onclick="toggleService(this, 80)" data-price="80">
+            <div class="service-check"></div>
+            <span class="service-icon">🍳</span>
+            <div class="service-info">
+              <div class="service-name">Mic dejun inclus</div>
+              <div class="service-price">+80 RON / zi</div>
+            </div>
+          </div>
+          <div class="service-item" onclick="toggleService(this, 60)" data-price="60">
+            <div class="service-check"></div>
+            <span class="service-icon">🚗</span>
+            <div class="service-info">
+              <div class="service-name">Parcare securizată</div>
+              <div class="service-price">+60 RON / zi</div>
+            </div>
+          </div>
+          <div class="service-item" onclick="toggleService(this, 150)" data-price="150">
+            <div class="service-check"></div>
+            <span class="service-icon">💆</span>
+            <div class="service-info">
+              <div class="service-name">Pachet Spa</div>
+              <div class="service-price">+150 RON / zi</div>
+            </div>
+          </div>
+          <div class="service-item" onclick="toggleService(this, 40)" data-price="40">
+            <div class="service-check"></div>
+            <span class="service-icon">✈️</span>
+            <div class="service-info">
+              <div class="service-name">Transfer aeroport</div>
+              <div class="service-price">+40 RON / sens</div>
+            </div>
+          </div>
+          <div class="service-item" onclick="toggleService(this, 30)" data-price="30">
+            <div class="service-check"></div>
+            <span class="service-icon">🍾</span>
+            <div class="service-info">
+              <div class="service-name">Șampanie la sosire</div>
+              <div class="service-price">+30 RON</div>
+            </div>
+          </div>
+          <div class="service-item" onclick="toggleService(this, 25)" data-price="25">
+            <div class="service-check"></div>
+            <span class="service-icon">🌸</span>
+            <div class="service-info">
+              <div class="service-name">Aranjament floral</div>
+              <div class="service-price">+25 RON</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(1)">← Înapoi</button>
+          <button class="btn-next" onclick="goStep(3)">
+            <span class="btn-text">Continuă →</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Confirmare -->
+      <div class="step-form" id="step-3">
+        <div class="step-header">
+          <div class="step-eyebrow">Pasul 3 din 3</div>
+          <div class="step-title"><em>Confirmă</em> Rezervarea</div>
+          <div class="step-sub">Verifică detaliile și finalizează rezervarea.</div>
+        </div>
+
+        <div class="alert" id="alert-3"><span id="alert-3-icon">⚠</span><span id="alert-3-text"></span></div>
+
+        <div class="summary-table" id="summary-table">
+          <div class="summary-section">
+            <div class="summary-section-title">Hotel</div>
+            <div class="summary-row"><span class="summary-key">Nume hotel</span><span class="summary-val" id="s-hotel">—</span></div>
+            <div class="summary-row"><span class="summary-key">Locație</span><span class="summary-val" id="s-location">—</span></div>
+          </div>
+          <div class="summary-section">
+            <div class="summary-section-title">Sejur</div>
+            <div class="summary-row"><span class="summary-key">Check-in</span><span class="summary-val" id="s-checkin">—</span></div>
+            <div class="summary-row"><span class="summary-key">Check-out</span><span class="summary-val" id="s-checkout">—</span></div>
+            <div class="summary-row"><span class="summary-key">Nopți</span><span class="summary-val" id="s-nights">—</span></div>
+            <div class="summary-row"><span class="summary-key">Oaspeți</span><span class="summary-val" id="s-guests">—</span></div>
+            <div class="summary-row"><span class="summary-key">Tip cameră</span><span class="summary-val" id="s-room">—</span></div>
+          </div>
+          <div class="summary-section">
+            <div class="summary-section-title">Client</div>
+            <div class="summary-row"><span class="summary-key">Nume</span><span class="summary-val" id="s-name">—</span></div>
+            <div class="summary-row"><span class="summary-key">Email</span><span class="summary-val" id="s-email">—</span></div>
+            <div class="summary-row"><span class="summary-key">Telefon</span><span class="summary-val" id="s-phone">—</span></div>
+          </div>
+          <div class="summary-section" id="services-summary-section" style="display:none;">
+            <div class="summary-section-title">Servicii suplimentare</div>
+            <div id="s-services"></div>
+          </div>
+          <div class="summary-section">
+            <div class="summary-section-title">Preț</div>
+            <div class="summary-row"><span class="summary-key" id="s-price-detail">— nopți × — RON</span><span class="summary-val" id="s-subtotal">—</span></div>
+            <div class="summary-row" id="s-extras-row" style="display:none;"><span class="summary-key">Servicii extra</span><span class="summary-val" id="s-extras">—</span></div>
+            <div class="summary-row"><span class="summary-key">Taxe (9%)</span><span class="summary-val" id="s-tax">—</span></div>
+          </div>
+          <div class="summary-total">
+            <span class="summary-total-label">Total de plată</span>
+            <span class="summary-total-val" id="s-total">—</span>
+          </div>
+        </div>
+
+        <label class="terms-row">
+          <input type="checkbox" id="terms">
+          <span class="terms-text">Am citit și sunt de acord cu <a href="#">Termenii și Condițiile</a>, <a href="#">Politica de Anulare</a> și confirm că datele introduse sunt corecte.</span>
+        </label>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(2)">← Înapoi</button>
+          <button class="btn-next" id="confirm-btn" onclick="confirmReservation()">
+            <span class="btn-text">Confirmă rezervarea</span>
+            <div class="spinner"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-page" id="success-page">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Rezervare <em>Confirmată!</em></div>
+        <div class="success-sub">
+          Rezervarea ta a fost înregistrată cu succes.<br>
+          Vei primi o confirmare la adresa de email indicată.<br><br>
+          Codul tău de rezervare:
+        </div>
+        <div class="success-code" id="booking-code">HF-000000</div>
+        <div class="success-actions">
+          <a href="my_account.html" class="btn-next" style="text-decoration:none; max-width:200px;">Rezervările mele</a>
+          <a href="index.html" class="btn-outline">Înapoi acasă</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: HOTEL CARD -->
+    <div>
+      <div class="hotel-card" id="hotel-card">
+        <div class="hotel-card-img" id="hc-img">🏨</div>
+        <div class="hotel-card-body">
+          <div class="hc-label">Hotel selectat</div>
+          <div class="hc-name" id="hc-name">Se încarcă...</div>
+          <div class="hc-location" id="hc-location">—</div>
+          <div class="hc-divider"></div>
+          <div class="hc-row"><span class="hc-key">Check-in</span><span class="hc-val" id="hc-checkin">—</span></div>
+          <div class="hc-row"><span class="hc-key">Check-out</span><span class="hc-val" id="hc-checkout">—</span></div>
+          <div class="hc-row"><span class="hc-key">Nopți</span><span class="hc-val" id="hc-nights">—</span></div>
+          <div class="hc-row"><span class="hc-key">Cameră</span><span class="hc-val" id="hc-room">Standard</span></div>
+          <div class="hc-total-row">
+            <span class="hc-total-label">Total estimat</span>
+            <span class="hc-total-val" id="hc-total">— RON</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✓</div>
+  <div class="toast-text" id="toast-text"></div>
+</div>
+
+<script>
+  // ── GLOBALS ──
+  const params   = new URLSearchParams(window.location.search);
+  const hotelId  = params.get('hotel_id');
+  let hotelData  = null;
+  let session    = null;
+  let currentStep= 1;
+  let roomExtra  = 0;
+  let servicesExtra = 0;
+  const roomNames = { standard: 'Cameră Standard', deluxe: 'Cameră Deluxe', suite: 'Suite Executivă' };
+  let selectedRoom = 'standard';
+
+  // ── INIT ──
+  async function init() {
+    if (!hotelId) { window.location.href = 'index.html'; return; }
+
+    [hotelData, session] = await Promise.all([
+      fetch(`api/get_hotel.php?id=${hotelId}`).then(r => r.json()).catch(() => null),
+      fetch('api/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
+    ]);
+
+    if (!hotelData || hotelData.error) { window.location.href = 'index.html'; return; }
+
+    renderHotelCard();
+    prefillDates();
+    prefillUser();
+    initRoomPrices();
+    document.getElementById('back-link').href = `detalii_hotel.html?id=${hotelId}`;
+    document.getElementById('page-loader').classList.add('hidden');
+  }
+
+  function renderHotelCard() {
+    document.getElementById('hc-name').textContent     = hotelData.name;
+    document.getElementById('hc-location').textContent = hotelData.location || 'România';
+    const img = hotelData.images && hotelData.images.length ? hotelData.images[0] : null;
+    if (img) document.getElementById('hc-img').innerHTML = `<img src="${img}" alt="${hotelData.name}" onerror="this.parentElement.textContent='🏨'">`;
+  }
+
+  function prefillDates() {
+    const ci = params.get('checkin');
+    const co = params.get('checkout');
+    const g  = params.get('guests') || '2';
+    if (ci) document.getElementById('checkin').value  = ci;
+    if (co) document.getElementById('checkout').value = co;
+    document.getElementById('guests').value = g;
+    updateSidebar();
+  }
+
+  function prefillUser() {
+    if (session.logged_in) {
+      // Pre-fill from session
+      const name = (session.name || '').split(' ');
+      if (name[0]) document.getElementById('first-name').value = name[0];
+      if (name[1]) document.getElementById('last-name').value  = name.slice(1).join(' ');
+      document.getElementById('email').value = session.email || '';
+    } else {
+      // Show guest notice
+      document.getElementById('guest-notice-wrap').innerHTML = `
+        <div class="guest-notice">
+          <div class="gn-icon">✦</div>
+          <div class="gn-text">Rezervi ca oaspete. <a href="login.html">Autentifică-te</a> sau <a href="register.html">creează un cont</a> pentru a vedea rezervarea ulterior în contul tău.</div>
+        </div>`;
+    }
+  }
+
+  function initRoomPrices() {
+    const base = parseFloat(hotelData.price) || 0;
+    document.getElementById('price-standard').textContent = base + ' RON';
+    document.getElementById('price-deluxe').textContent   = (base + 50) + ' RON';
+    document.getElementById('price-suite').textContent    = (base + 120) + ' RON';
+  }
+
+  // ── SIDEBAR UPDATE ──
+  function updateSidebar() {
+    const ci = document.getElementById('checkin').value;
+    const co = document.getElementById('checkout').value;
+    if (ci) document.getElementById('hc-checkin').textContent  = formatDate(ci);
+    if (co) document.getElementById('hc-checkout').textContent = formatDate(co);
+
+    const nights = calcNights();
+    document.getElementById('hc-nights').textContent = nights > 0 ? nights + ' nopți' : '—';
+
+    const total = calcTotal(nights);
+    document.getElementById('hc-total').textContent = total > 0 ? total.toLocaleString('ro-RO') + ' RON' : '— RON';
+  }
+
+  function calcNights() {
+    const ci = document.getElementById('checkin').value;
+    const co = document.getElementById('checkout').value;
+    if (!ci || !co) return 0;
+    return Math.max(0, Math.round((new Date(co) - new Date(ci)) / 86400000));
+  }
+
+  function calcTotal(nights) {
+    if (!nights || !hotelData) return 0;
+    const base    = (parseFloat(hotelData.price) + roomExtra) * nights;
+    const extras  = servicesExtra;
+    const tax     = Math.round((base + extras) * 0.09);
+    return base + extras + tax;
+  }
+
+  // ── ROOM SELECT ──
+  function selectRoom(el, extra) {
+    document.querySelectorAll('.room-type').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    roomExtra    = extra;
+    selectedRoom = el.querySelector('input').value;
+    document.getElementById('hc-room').textContent = roomNames[selectedRoom] || 'Standard';
+    updateSidebar();
+  }
+
+  // ── SERVICES TOGGLE ──
+  function toggleService(el, price) {
+    el.classList.toggle('selected');
+    const check = el.querySelector('.service-check');
+    if (el.classList.contains('selected')) {
+      check.textContent = '✓'; servicesExtra += price;
+    } else {
+      check.textContent = ''; servicesExtra -= price;
+    }
+    updateSidebar();
+  }
+
+  // ── STEP NAV ──
+  function tryGoStep(step) {
+    const si = document.getElementById(`si-${step}`);
+    if (si.classList.contains('done') || step < currentStep) goStep(step);
+  }
+
+  function goStep(step) {
+    clearAlerts();
+    if (step > currentStep && !validateStep(currentStep)) return;
+    if (step === 3) fillSummary();
+
+    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    document.getElementById(`step-${step}`).classList.add('active');
+
+    // update indicators
+    for (let i = 1; i <= 3; i++) {
+      const si = document.getElementById(`si-${i}`);
+      si.className = 'step-item';
+      if (i < step)  si.classList.add('done');
+      if (i === step) si.classList.add('active');
+    }
+
+    currentStep = step;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── VALIDATE ──
+  function validateStep(step) {
+    if (step === 1) {
+      const ci = document.getElementById('checkin').value;
+      const co = document.getElementById('checkout').value;
+      const fn = document.getElementById('first-name').value.trim();
+      const ln = document.getElementById('last-name').value.trim();
+      const em = document.getElementById('email').value.trim();
+      if (!ci || !co) { showAlert(1, 'Selectează datele de check-in și check-out.'); return false; }
+      if (new Date(co) <= new Date(ci)) { showAlert(1, 'Check-out-ul trebuie să fie după check-in.'); return false; }
+      if (!fn || !ln) { showAlert(1, 'Completează numele și prenumele.'); return false; }
+      if (!em || !em.includes('@')) { showAlert(1, 'Introdu o adresă de email validă.'); return false; }
+    }
+    return true;
+  }
+
+  // ── FILL SUMMARY ──
+  function fillSummary() {
+    const ci     = document.getElementById('checkin').value;
+    const co     = document.getElementById('checkout').value;
+    const nights = calcNights();
+    const base   = parseFloat(hotelData.price) + roomExtra;
+    const subtotal = base * nights;
+    const tax    = Math.round((subtotal + servicesExtra) * 0.09);
+    const total  = subtotal + servicesExtra + tax;
+
+    document.getElementById('s-hotel').textContent    = hotelData.name;
+    document.getElementById('s-location').textContent = hotelData.location || 'România';
+    document.getElementById('s-checkin').textContent  = formatDate(ci);
+    document.getElementById('s-checkout').textContent = formatDate(co);
+    document.getElementById('s-nights').textContent   = nights + ' nopți';
+    document.getElementById('s-guests').textContent   = document.getElementById('guests').value + ' adulți, ' + document.getElementById('children').value + ' copii';
+    document.getElementById('s-room').textContent     = roomNames[selectedRoom];
+    document.getElementById('s-name').textContent     = document.getElementById('first-name').value + ' ' + document.getElementById('last-name').value;
+    document.getElementById('s-email').textContent    = document.getElementById('email').value;
+    document.getElementById('s-phone').textContent    = document.getElementById('phone').value || '—';
+    document.getElementById('s-price-detail').textContent = `${nights} nopți × ${base} RON`;
+    document.getElementById('s-subtotal').textContent = subtotal.toLocaleString('ro-RO') + ' RON';
+    document.getElementById('s-tax').textContent      = tax.toLocaleString('ro-RO') + ' RON';
+    document.getElementById('s-total').textContent    = total.toLocaleString('ro-RO') + ' RON';
+
+    // Services
+    const selectedServices = document.querySelectorAll('.service-item.selected');
+    if (selectedServices.length) {
+      document.getElementById('services-summary-section').style.display = 'block';
+      document.getElementById('s-extras-row').style.display = 'flex';
+      document.getElementById('s-extras').textContent = servicesExtra.toLocaleString('ro-RO') + ' RON';
+      document.getElementById('s-services').innerHTML = Array.from(selectedServices).map(s =>
+        `<div class="summary-row"><span class="summary-key">${s.querySelector('.service-name').textContent}</span><span class="summary-val">+${s.dataset.price} RON</span></div>`
+      ).join('');
+    }
+  }
+
+  // ── CONFIRM RESERVATION ──
+  async function confirmReservation() {
+    if (!document.getElementById('terms').checked) {
+      showAlert(3, 'Trebuie să accepți termenii și condițiile pentru a continua.');
+      return;
+    }
+
+    const btn = document.getElementById('confirm-btn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const nights = calcNights();
+    const base   = (parseFloat(hotelData.price) + roomExtra) * nights;
+    const tax    = Math.round((base + servicesExtra) * 0.09);
+    const total  = base + servicesExtra + tax;
+
+    const body = new FormData();
+    body.append('hotel_id',    hotelId);
+    body.append('checkin',     document.getElementById('checkin').value);
+    body.append('checkout',    document.getElementById('checkout').value);
+    body.append('guests',      document.getElementById('guests').value);
+    body.append('children',    document.getElementById('children').value);
+    body.append('room_type',   selectedRoom);
+    body.append('first_name',  document.getElementById('first-name').value.trim());
+    body.append('last_name',   document.getElementById('last-name').value.trim());
+    body.append('email',       document.getElementById('email').value.trim());
+    body.append('phone',       document.getElementById('phone').value.trim());
+    body.append('requests',    document.getElementById('requests').value.trim());
+    body.append('services',    Array.from(document.querySelectorAll('.service-item.selected')).map(s => s.querySelector('.service-name').textContent).join(', '));
+    body.append('total_price', total);
+    body.append('nights',      nights);
+
+    try {
+      const r    = await fetch('api/create_rezervare.php', { method: 'POST', body });
+      const data = await r.json();
+
+      if (data.success) {
+        // Hide steps
+        document.getElementById('step-3').classList.remove('active');
+        document.querySelectorAll('.step-item').forEach(s => s.classList.add('done'));
+        document.getElementById('steps-bar')?.remove();
+        document.getElementById('booking-code').textContent = data.code || 'HF-' + data.id;
+        document.getElementById('success-page').classList.add('visible');
+        document.getElementById('hotel-card').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        showAlert(3, data.message || 'Eroare la procesarea rezervării. Încearcă din nou.');
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
+    } catch(e) {
+      showAlert(3, 'Eroare de conexiune. Încearcă din nou.');
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  // ── HELPERS ──
+  function formatDate(str) {
+    if (!str) return '—';
+    const d = new Date(str);
+    return d.toLocaleDateString('ro-RO', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  function showAlert(step, msg, type = 'error') {
+    const el   = document.getElementById(`alert-${step}`);
+    const icon = document.getElementById(`alert-${step}-icon`);
+    const text = document.getElementById(`alert-${step}-text`);
+    if (!el) return;
+    text.textContent = msg;
+    icon.textContent = type === 'error' ? '⚠' : '✓';
+    el.className = `alert visible ${type}`;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function clearAlerts() {
+    document.querySelectorAll('.alert').forEach(a => a.classList.remove('visible'));
+  }
+
+  function showToast(msg, icon = '✓') {
+    document.getElementById('toast-text').textContent = msg;
+    document.getElementById('toast-icon').textContent = icon;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  init();
+</script>
+</body>
+</html>
