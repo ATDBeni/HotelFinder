@@ -1478,7 +1478,7 @@
         // ── CHECK SESSION ──
         async function checkSession() {
             try {
-                const r = await fetch('api/check_session.php');
+                const r = await fetch('api/auth/check_session.php');
                 const d = await r.json();
                 const el = document.getElementById('nav-actions');
                 if (d.logged_in) {
@@ -1498,7 +1498,7 @@
         // ── FETCH HOTELS ──
         async function fetchHotels() {
             try {
-                const r = await fetch('api/get_hotels.php');
+                const r = await fetch('api/Hotels/get_hotels.php');
                 const data = await r.json();
                 allHotels = data;
                 document.getElementById('stat-hotels').textContent = data.length + '+';

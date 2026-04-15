@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelFinder — Contul Meu</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold:       #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim:   rgba(201,168,76,0.13);
+    --gold-line:  rgba(201,168,76,0.25);
+    --black:      #080808;
+    --dark:       #0F0F0F;
+    --dark2:      #161616;
+    --dark3:      #1E1E1E;
+    --dark4:      #272727;
+    --text:       #EDE8DE;
+    --text-muted: #8A7D65;
+    --text-faint: #4A4035;
+    --red:        #E05252;
+    --green:      #52C07A;
+    --yellow:     #C9A84C;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'Montserrat', sans-serif;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-line); }
+  html { scroll-behavior: smooth; }
+  body { background: var(--dark); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 68px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 3rem;
+    background: rgba(8,8,8,0.96); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--gold-line);
+  }
+  .nav-logo { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+  .nav-greeting { font-size: 11px; font-weight: 300; color: var(--text-muted); }
+  .nav-greeting span { color: var(--gold); font-weight: 400; }
+  .btn-ghost { font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); padding: 8px 18px; border: 1px solid var(--gold-line); border-radius: 1px; text-decoration: none; transition: all 0.2s; cursor: pointer; background: transparent; }
+  .btn-ghost:hover { background: var(--gold-dim); }
+  .btn-gold { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); padding: 9px 20px; background: var(--gold); border: 1px solid var(--gold); border-radius: 1px; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+  .btn-gold:hover { background: var(--gold-light); }
+
+  /* LAYOUT */
+  .page { display: flex; min-height: 100vh; padding-top: 68px; }
+
+  /* SIDEBAR NAV */
+  .side-nav {
+    width: 260px; flex-shrink: 0;
+    background: var(--dark2);
+    border-right: 1px solid var(--gold-line);
+    padding: 2.5rem 0;
+    position: sticky; top: 68px; height: calc(100vh - 68px);
+    overflow-y: auto;
+  }
+  .side-profile {
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid var(--gold-line);
+    margin-bottom: 1.5rem;
+  }
+  .profile-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--dark4); border: 1px solid var(--gold-line);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 22px; color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .profile-name { font-size: 14px; font-weight: 400; color: var(--text); margin-bottom: 3px; }
+  .profile-email { font-size: 10px; font-weight: 300; color: var(--text-faint); margin-bottom: 8px; }
+  .profile-badge {
+    display: inline-block; font-size: 8px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; background: var(--gold-dim);
+    border: 1px solid var(--gold-line); color: var(--gold);
+    padding: 3px 10px; border-radius: 1px;
+  }
+  .side-menu { display: flex; flex-direction: column; gap: 2px; padding: 0 0.75rem; }
+  .side-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px; border-radius: 1px;
+    font-size: 11px; font-weight: 400; letter-spacing: 0.06em;
+    color: var(--text-muted); cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .side-item:hover { color: var(--text); background: var(--dark3); }
+  .side-item.active { color: var(--gold); background: var(--gold-dim); border-color: var(--gold-line); }
+  .side-icon { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+  .side-badge {
+    margin-left: auto; background: var(--gold); color: var(--black);
+    font-size: 9px; font-weight: 600; min-width: 18px; height: 18px;
+    border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    padding: 0 5px;
+  }
+  .side-divider { height: 1px; background: var(--gold-line); margin: 12px 1.25rem; }
+
+  /* MAIN CONTENT */
+  .main { flex: 1; padding: 2.5rem 3rem; overflow-x: hidden; }
+
+  /* TAB PANELS */
+  .tab-panel { display: none; animation: fadeIn 0.35s ease both; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* PANEL HEADER */
+  .panel-header { margin-bottom: 2rem; }
+  .panel-eyebrow { font-size: 9px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .panel-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--gold-line); }
+  .panel-title { font-family: var(--serif); font-size: 36px; font-weight: 300; color: var(--text); }
+  .panel-title em { font-style: italic; color: var(--gold); }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 2.5rem; }
+  .stat-card { background: var(--dark2); border: 1px solid rgba(255,255,255,0.05); border-radius: 1px; padding: 20px; }
+  .stat-label { font-size: 9px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+  .stat-value { font-family: var(--serif); font-size: 36px; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 4px; }
+  .stat-sub { font-size: 10px; font-weight: 300; color: var(--text-faint); }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px; display: flex; align-items: center; gap: 16px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); }
+
+  /* RESERVATION CARDS */
+  .rez-list { display: flex; flex-direction: column; gap: 12px; }
+  .rez-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 1px; overflow: hidden; transition: border-color 0.25s;
+  }
+  .rez-card:hover { border-color: var(--gold-line); }
+  .rez-card-inner { display: flex; align-items: stretch; }
+  .rez-img {
+    width: 120px; flex-shrink: 0; background: var(--dark3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; opacity: 0.3;
+  }
+  .rez-img img { width: 100%; height: 100%; object-fit: cover; opacity: 1; font-size: 0; }
+  .rez-body { flex: 1; padding: 18px 20px; }
+  .rez-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .rez-hotel { font-family: var(--serif); font-size: 20px; font-weight: 300; color: var(--text); }
+  .status-badge {
+    font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 1px; flex-shrink: 0;
+  }
+  .status-pending   { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-line); }
+  .status-confirmed { background: rgba(82,192,122,0.1); color: #7DD8A0; border: 1px solid rgba(82,192,122,0.25); }
+  .status-cancelled { background: rgba(224,82,82,0.1); color: #F09090; border: 1px solid rgba(224,82,82,0.25); }
+  .status-completed { background: rgba(255,255,255,0.05); color: var(--text-faint); border: 1px solid rgba(255,255,255,0.08); }
+  .rez-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .rez-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .rez-meta-label { font-size: 8px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
+  .rez-meta-val { font-size: 12px; font-weight: 300; color: var(--text-muted); }
+  .rez-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .rez-code { font-size: 10px; font-weight: 400; letter-spacing: 0.1em; color: var(--text-faint); }
+  .rez-total { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--gold); }
+  .rez-actions { display: flex; gap: 8px; }
+  .btn-sm {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 7px 14px; border-radius: 1px; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-flex; align-items: center;
+  }
+  .btn-sm-outline { background: transparent; border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted); }
+  .btn-sm-outline:hover { border-color: var(--gold-line); color: var(--text); }
+  .btn-sm-danger { background: transparent; border: 1px solid rgba(224,82,82,0.25); color: #F09090; }
+  .btn-sm-danger:hover { background: rgba(224,82,82,0.1); }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 4rem 2rem; }
+  .empty-icon { font-size: 48px; opacity: 0.2; margin-bottom: 20px; }
+  .empty-title { font-family: var(--serif); font-size: 28px; font-weight: 300; color: var(--text-muted); margin-bottom: 10px; }
+  .empty-sub { font-size: 12px; font-weight: 300; color: var(--text-faint); margin-bottom: 28px; line-height: 1.7; }
+
+  /* FILTER TABS */
+  .filter-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gold-line); margin-bottom: 20px; }
+  .filter-tab {
+    padding: 10px 20px; font-size: 10px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-faint); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* PROFILE FORM */
+  .profile-form { max-width: 560px; }
+  .field-group { margin-bottom: 18px; }
+  .field-row { display: flex; gap: 14px; }
+  .field-row .field-group { flex: 1; }
+  .field-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+  .field-input {
+    width: 100%; background: var(--dark2); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 1px; outline: none;
+    font-family: var(--sans); font-size: 13px; font-weight: 300;
+    color: var(--text); padding: 12px 16px; transition: border-color 0.2s;
+  }
+  .field-input::placeholder { color: var(--text-faint); }
+  .field-input:focus { border-color: var(--gold-line); }
+  .field-password { position: relative; }
+  .field-password .field-input { padding-right: 44px; }
+  .toggle-pw { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; cursor: pointer; color: var(--text-faint); background: none; border: none; padding: 0; transition: color 0.2s; line-height: 1; }
+  .toggle-pw:hover { color: var(--gold); }
+  .field-hint { font-size: 9px; color: var(--text-faint); margin-top: 5px; }
+
+  .alert { border-radius: 1px; padding: 12px 16px; margin-bottom: 16px; font-size: 11px; font-weight: 300; display: none; align-items: center; gap: 10px; }
+  .alert.visible { display: flex; }
+  .alert.error   { background: rgba(224,82,82,0.1); border: 1px solid rgba(224,82,82,0.25); color: #F09090; }
+  .alert.success { background: rgba(82,192,122,0.1); border: 1px solid rgba(82,192,122,0.25); color: #90D0A8; }
+
+  /* REVIEWS TAB */
+  .my-review-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 1px; padding: 20px; margin-bottom: 12px;
+    display: flex; gap: 16px; transition: border-color 0.2s;
+  }
+  .my-review-card:hover { border-color: var(--gold-line); }
+  .rev-hotel-img { width: 72px; height: 72px; border-radius: 1px; background: var(--dark3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; opacity: 0.4; overflow: hidden; }
+  .rev-hotel-img img { width: 100%; height: 100%; object-fit: cover; opacity: 1; font-size: 0; }
+  .rev-body { flex: 1; }
+  .rev-hotel-name { font-family: var(--serif); font-size: 18px; font-weight: 300; color: var(--text); margin-bottom: 4px; }
+  .rev-stars { display: flex; gap: 2px; margin-bottom: 6px; }
+  .star { color: var(--gold); font-size: 12px; }
+  .star.empty { color: var(--text-faint); }
+  .rev-comment { font-size: 12px; font-weight: 300; color: var(--text-muted); line-height: 1.7; }
+  .rev-date { font-size: 9px; color: var(--text-faint); margin-top: 6px; }
+
+  /* LOADER */
+  .page-loader { position: fixed; inset: 0; z-index: 500; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.5s; }
+  .page-loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-ring { width: 44px; height: 44px; border: 1px solid var(--gold-line); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 15px 22px; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s ease; min-width: 280px; }
+  .toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 16px; color: var(--gold); }
+  .toast-text { font-size: 12px; color: var(--text); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 32px; max-width: 440px; width: 90%; animation: fadeIn 0.3s ease; }
+  .modal-title { font-family: var(--serif); font-size: 26px; font-weight: 300; color: var(--text); margin-bottom: 12px; }
+  .modal-sub { font-size: 12px; font-weight: 300; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px; }
+  .modal-actions { display: flex; gap: 10px; }
+  .btn-cancel { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 1px; padding: 12px; font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+  .btn-cancel:hover { border-color: var(--gold-line); color: var(--text); }
+  .btn-danger { flex: 1; background: rgba(224,82,82,0.15); border: 1px solid rgba(224,82,82,0.3); border-radius: 1px; padding: 12px; font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #F09090; cursor: pointer; transition: all 0.2s; }
+  .btn-danger:hover { background: rgba(224,82,82,0.25); }
+
+  @media (max-width: 900px) {
+    nav { padding: 0 1.5rem; }
+    .page { flex-direction: column; }
+    .side-nav { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--gold-line); padding: 1rem; }
+    .side-menu { flex-direction: row; flex-wrap: wrap; }
+    .side-profile { display: none; }
+    .main { padding: 1.5rem; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="page-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Se încarcă contul</div>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Hotel<span>Finder</span></a>
+  <div class="nav-right">
+    <span class="nav-greeting">Bun venit, <span id="nav-name">—</span></span>
+    <a href="index.html" class="btn-ghost">Hoteluri</a>
+    <a href="api/logout.php" class="btn-gold">Deconectare</a>
+  </div>
+</nav>
+
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal">
+    <div class="modal-title">Anulezi rezervarea?</div>
+    <div class="modal-sub">Această acțiune nu poate fi anulată. Rezervarea va fi marcată ca anulată și nu vei mai putea face check-in.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Renunță</button>
+      <button class="btn-danger" id="confirm-cancel-btn" onclick="doCancel()">Da, anulează</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <!-- SIDEBAR -->
+  <div class="side-nav">
+    <div class="side-profile">
+      <div class="profile-avatar" id="side-avatar">?</div>
+      <div class="profile-name" id="side-name">—</div>
+      <div class="profile-email" id="side-email">—</div>
+      <span class="profile-badge">Client</span>
+    </div>
+    <div class="side-menu">
+      <a class="side-item active" onclick="showTab('overview')">
+        <span class="side-icon">◎</span> Prezentare generală
+      </a>
+      <a class="side-item" onclick="showTab('rezervari')">
+        <span class="side-icon">◻</span> Rezervările mele
+        <span class="side-badge" id="rez-badge">0</span>
+      </a>
+      <a class="side-item" onclick="showTab('recenzii')">
+        <span class="side-icon">★</span> Recenziile mele
+      </a>
+      <div class="side-divider"></div>
+      <a class="side-item" onclick="showTab('profil')">
+        <span class="side-icon">✦</span> Editează profilul
+      </a>
+      <a class="side-item" onclick="showTab('parola')">
+        <span class="side-icon">◉</span> Schimbă parola
+      </a>
+      <div class="side-divider"></div>
+      <a class="side-item" href="index.html">
+        <span class="side-icon">←</span> Înapoi la hoteluri
+      </a>
+      <a class="side-item" href="api/logout.php" style="color:var(--red); opacity:0.7;">
+        <span class="side-icon">⊗</span> Deconectare
+      </a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ── OVERVIEW ── -->
+    <div class="tab-panel active" id="panel-overview">
+      <div class="panel-header">
+        <div class="panel-eyebrow">Dashboard</div>
+        <div class="panel-title">Bun venit, <em id="welcome-name">—</em></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total rezervări</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">din toate timpurile</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">În așteptare</div>
+          <div class="stat-value" id="stat-pending">0</div>
+          <div class="stat-sub">rezervări active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Nopți petrecute</div>
+          <div class="stat-value" id="stat-nights">0</div>
+          <div class="stat-sub">experiențe trăite</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Recenzii scrise</div>
+          <div class="stat-value" id="stat-reviews">0</div>
+          <div class="stat-sub">opinii publicate</div>
+        </div>
+      </div>
+
+      <div class="section-title">Rezervări recente</div>
+      <div class="rez-list" id="recent-rez-list">
+        <div class="empty-state">
+          <div class="loader-ring"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem;">
+        <a href="index.html" class="btn-gold" style="display:inline-block; text-align:center;">
+          + Rezervă un hotel nou
+        </a>
+      </div>
+    </div>
+
+    <!-- ── REZERVARI ── -->
+    <div class="tab-panel" id="panel-rezervari">
+      <div class="panel-header">
+        <div class="panel-eyebrow">Istoricul meu</div>
+        <div class="panel-title">Rezervările <em>Mele</em></div>
+      </div>
+
+      <div class="filter-tabs">
+        <div class="filter-tab active" onclick="filterRez('all', this)">Toate</div>
+        <div class="filter-tab" onclick="filterRez('pending', this)">În așteptare</div>
+        <div class="filter-tab" onclick="filterRez('confirmed', this)">Confirmate</div>
+        <div class="filter-tab" onclick="filterRez('completed', this)">Finalizate</div>
+        <div class="filter-tab" onclick="filterRez('cancelled', this)">Anulate</div>
+      </div>
+
+      <div class="rez-list" id="all-rez-list">
+        <div class="empty-state"><div class="loader-ring"></div></div>
+      </div>
+    </div>
+
+    <!-- ── RECENZII ── -->
+    <div class="tab-panel" id="panel-recenzii">
+      <div class="panel-header">
+        <div class="panel-eyebrow">Opiniile mele</div>
+        <div class="panel-title">Recenziile <em>Mele</em></div>
+      </div>
+      <div id="reviews-list-panel">
+        <div class="empty-state"><div class="loader-ring"></div></div>
+      </div>
+    </div>
+
+    <!-- ── PROFIL ── -->
+    <div class="tab-panel" id="panel-profil">
+      <div class="panel-header">
+        <div class="panel-eyebrow">Setări cont</div>
+        <div class="panel-title">Editează <em>Profilul</em></div>
+      </div>
+      <div class="profile-form">
+        <div class="alert" id="profile-alert"><span id="profile-alert-icon">⚠</span><span id="profile-alert-text"></span></div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Prenume</label>
+            <input class="field-input" type="text" id="p-fname" placeholder="Ion">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Nume</label>
+            <input class="field-input" type="text" id="p-lname" placeholder="Popescu">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <input class="field-input" type="email" id="p-email" placeholder="email@exemplu.com">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Telefon</label>
+          <input class="field-input" type="tel" id="p-phone" placeholder="+40 7xx xxx xxx">
+          <div class="field-hint">Folosit pentru confirmări de rezervare.</div>
+        </div>
+        <button class="btn-gold" onclick="saveProfile()" id="save-profile-btn">Salvează modificările</button>
+      </div>
+    </div>
+
+    <!-- ── PAROLA ── -->
+    <div class="tab-panel" id="panel-parola">
+      <div class="panel-header">
+        <div class="panel-eyebrow">Securitate</div>
+        <div class="panel-title">Schimbă <em>Parola</em></div>
+      </div>
+      <div class="profile-form">
+        <div class="alert" id="pw-alert"><span id="pw-alert-icon">⚠</span><span id="pw-alert-text"></span></div>
+        <div class="field-group">
+          <label class="field-label">Parola actuală</label>
+          <div class="field-password">
+            <input class="field-input" type="password" id="pw-current" placeholder="••••••••">
+            <button class="toggle-pw" onclick="togglePw('pw-current', this)">◎</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Parola nouă</label>
+          <div class="field-password">
+            <input class="field-input" type="password" id="pw-new" placeholder="Minim 8 caractere">
+            <button class="toggle-pw" onclick="togglePw('pw-new', this)">◎</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Confirmă parola nouă</label>
+          <div class="field-password">
+            <input class="field-input" type="password" id="pw-confirm" placeholder="Repetă parola">
+            <button class="toggle-pw" onclick="togglePw('pw-confirm', this)">◎</button>
+          </div>
+        </div>
+        <button class="btn-gold" onclick="savePassword()" id="save-pw-btn">Schimbă parola</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✓</div>
+  <div class="toast-text" id="toast-text"></div>
+</div>
+
+<script>
+  let session      = null;
+  let allRez       = [];
+  let cancelTarget = null;
+
+  // ── INIT ──
+  async function init() {
+    try {
+      session = await fetch('api/check_session.php').then(r => r.json());
+      if (!session.logged_in || session.role !== 'client') {
+        window.location.href = 'login.html'; return;
+      }
+    } catch(e) { window.location.href = 'login.html'; return; }
+
+    // populate name
+    const name = session.name || '';
+    document.getElementById('nav-name').textContent     = name.split(' ')[0];
+    document.getElementById('welcome-name').textContent = name.split(' ')[0];
+    document.getElementById('side-name').textContent    = name;
+    document.getElementById('side-email').textContent   = session.email || '';
+    document.getElementById('side-avatar').textContent  = name ? (name[0] + (name.split(' ')[1]?.[0] || '')).toUpperCase() : '?';
+
+    await Promise.all([loadReservations(), loadReviews(), loadProfile()]);
+    document.getElementById('page-loader').classList.add('hidden');
+  }
+
+  // ── LOAD RESERVATIONS ──
+  async function loadReservations() {
+    try {
+      const data = await fetch('api/get_my_rezervari.php').then(r => r.json());
+      allRez = data.rezervari || [];
+      renderStats(data);
+      renderRezList(allRez, 'recent-rez-list', 3);
+      renderRezList(allRez, 'all-rez-list');
+      document.getElementById('rez-badge').textContent =
+        allRez.filter(r => r.status === 'pending' || r.status === 'confirmed').length;
+    } catch(e) {
+      document.getElementById('recent-rez-list').innerHTML = '<div class="empty-state"><div class="empty-title">Nu s-au putut încărca rezervările.</div></div>';
+    }
+  }
+
+  function renderStats(data) {
+    document.getElementById('stat-total').textContent   = data.stats?.total   || 0;
+    document.getElementById('stat-pending').textContent = data.stats?.pending  || 0;
+    document.getElementById('stat-nights').textContent  = data.stats?.nights   || 0;
+    document.getElementById('stat-reviews').textContent = data.stats?.reviews  || 0;
+  }
+
+  function renderRezList(list, containerId, limit = null) {
+    const container = document.getElementById(containerId);
+    const items = limit ? list.slice(0, limit) : list;
+
+    if (!items.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◻</div>
+          <div class="empty-title">Nicio rezervare încă</div>
+          <div class="empty-sub">Explorează hotelurile noastre și fă prima ta rezervare.</div>
+          <a href="index.html" class="btn-gold">Caută hoteluri</a>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(r => rezCard(r)).join('');
+  }
+
+  function rezCard(r) {
+    const statusMap = {
+      pending:   { cls: 'status-pending',   label: 'În așteptare' },
+      confirmed: { cls: 'status-confirmed', label: 'Confirmată' },
+      cancelled: { cls: 'status-cancelled', label: 'Anulată' },
+      completed: { cls: 'status-completed', label: 'Finalizată' },
+    };
+    const st = statusMap[r.status] || statusMap.pending;
+    const imgHtml = r.image_url
+      ? `<img src="${r.image_url}" alt="${r.hotel_name}" onerror="this.parentElement.textContent='🏨'">`
+      : '🏨';
+    const canCancel = r.status === 'pending' || r.status === 'confirmed';
+    const isCompleted = r.status === 'completed';
+
+    return `
+      <div class="rez-card" id="rez-${r.id}">
+        <div class="rez-card-inner">
+          <div class="rez-img">${imgHtml}</div>
+          <div class="rez-body">
+            <div class="rez-top">
+              <div class="rez-hotel">${r.hotel_name || 'Hotel'}</div>
+              <span class="status-badge ${st.cls}">${st.label}</span>
+            </div>
+            <div class="rez-meta">
+              <div class="rez-meta-item">
+                <span class="rez-meta-label">Check-in</span>
+                <span class="rez-meta-val">${formatDate(r.checkin_date)}</span>
+              </div>
+              <div class="rez-meta-item">
+                <span class="rez-meta-label">Check-out</span>
+                <span class="rez-meta-val">${formatDate(r.checkout_date)}</span>
+              </div>
+              <div class="rez-meta-item">
+                <span class="rez-meta-label">Nopți</span>
+                <span class="rez-meta-val">${r.nights || '—'}</span>
+              </div>
+              <div class="rez-meta-item">
+                <span class="rez-meta-label">Cameră</span>
+                <span class="rez-meta-val">${formatRoom(r.room_type)}</span>
+              </div>
+              <div class="rez-meta-item">
+                <span class="rez-meta-label">Oaspeți</span>
+                <span class="rez-meta-val">${r.guests} adulți</span>
+              </div>
+            </div>
+            <div class="rez-footer">
+              <span class="rez-code">${r.booking_code || '#' + r.id}</span>
+              <span class="rez-total">${parseFloat(r.total_price || 0).toLocaleString('ro-RO')} RON</span>
+              <div class="rez-actions">
+                <a href="detalii_hotel.html?id=${r.hotel_id}" class="btn-sm btn-sm-outline">Hotel</a>
+                ${canCancel ? `<button class="btn-sm btn-sm-danger" onclick="openCancel(${r.id})">Anulează</button>` : ''}
+                ${isCompleted && !r.has_review ? `<a href="detalii_hotel.html?id=${r.hotel_id}#recenzii" class="btn-sm btn-sm-outline">Lasă recenzie</a>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function filterRez(status, el) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const filtered = status === 'all' ? allRez : allRez.filter(r => r.status === status);
+    renderRezList(filtered, 'all-rez-list');
+  }
+
+  // ── LOAD REVIEWS ──
+  async function loadReviews() {
+    try {
+      const data = await fetch('api/get_my_reviews.php').then(r => r.json());
+      renderReviews(data.reviews || []);
+    } catch(e) {}
+  }
+
+  function renderReviews(reviews) {
+    const container = document.getElementById('reviews-list-panel');
+    if (!reviews.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">★</div>
+          <div class="empty-title">Nicio recenzie încă</div>
+          <div class="empty-sub">După ce finalizezi un sejur, poți lăsa o recenzie pentru hotelul vizitat.</div>
+        </div>`;
+      return;
+    }
+    container.innerHTML = reviews.map(r => {
+      const starsHtml = [1,2,3,4,5].map(s => `<span class="star${s > r.rating ? ' empty' : ''}">★</span>`).join('');
+      const imgHtml = r.image_url ? `<img src="${r.image_url}" alt="${r.hotel_name}">` : '🏨';
+      return `
+        <div class="my-review-card">
+          <div class="rev-hotel-img">${imgHtml}</div>
+          <div class="rev-body">
+            <div class="rev-hotel-name">${r.hotel_name}</div>
+            <div class="rev-stars">${starsHtml}</div>
+            ${r.comment ? `<div class="rev-comment">${r.comment}</div>` : ''}
+            <div class="rev-date">${new Date(r.created_at).toLocaleDateString('ro-RO', { year:'numeric', month:'long', day:'numeric' })}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── LOAD PROFILE ──
+  async function loadProfile() {
+    try {
+      const data = await fetch('api/get_profile.php').then(r => r.json());
+      document.getElementById('p-fname').value  = data.first_name || '';
+      document.getElementById('p-lname').value  = data.last_name  || '';
+      document.getElementById('p-email').value  = data.email      || '';
+      document.getElementById('p-phone').value  = data.phone      || '';
+    } catch(e) {}
+  }
+
+  // ── SAVE PROFILE ──
+  async function saveProfile() {
+    const btn = document.getElementById('save-profile-btn');
+    btn.disabled = true; btn.textContent = 'Se salvează...';
+
+    const body = new FormData();
+    body.append('first_name', document.getElementById('p-fname').value.trim());
+    body.append('last_name',  document.getElementById('p-lname').value.trim());
+    body.append('email',      document.getElementById('p-email').value.trim());
+    body.append('phone',      document.getElementById('p-phone').value.trim());
+
+    try {
+      const r    = await fetch('api/update_profile.php', { method: 'POST', body });
+      const data = await r.json();
+      if (data.success) {
+        showAlert('profile', 'Profilul a fost actualizat cu succes.', 'success');
+        showToast('Profil actualizat!', '✓');
+        document.getElementById('side-name').textContent = data.name || '';
+        document.getElementById('nav-name').textContent  = (data.name || '').split(' ')[0];
+        document.getElementById('welcome-name').textContent = (data.name || '').split(' ')[0];
+      } else {
+        showAlert('profile', data.message || 'Eroare la salvare.');
+      }
+    } catch(e) { showAlert('profile', 'Eroare de conexiune.'); }
+
+    btn.disabled = false; btn.textContent = 'Salvează modificările';
+  }
+
+  // ── SAVE PASSWORD ──
+  async function savePassword() {
+    const cur = document.getElementById('pw-current').value;
+    const nw  = document.getElementById('pw-new').value;
+    const cf  = document.getElementById('pw-confirm').value;
+
+    if (!cur || !nw || !cf) { showAlert('pw', 'Completează toate câmpurile.'); return; }
+    if (nw.length < 8) { showAlert('pw', 'Parola nouă trebuie să aibă cel puțin 8 caractere.'); return; }
+    if (nw !== cf) { showAlert('pw', 'Parolele noi nu coincid.'); return; }
+
+    const btn = document.getElementById('save-pw-btn');
+    btn.disabled = true; btn.textContent = 'Se schimbă...';
+
+    const body = new FormData();
+    body.append('current', cur); body.append('new', nw);
+
+    try {
+      const r    = await fetch('api/change_password.php', { method: 'POST', body });
+      const data = await r.json();
+      if (data.success) {
+        showAlert('pw', 'Parola a fost schimbată cu succes.', 'success');
+        showToast('Parolă schimbată!', '✓');
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value     = '';
+        document.getElementById('pw-confirm').value = '';
+      } else {
+        showAlert('pw', data.message || 'Eroare.');
+      }
+    } catch(e) { showAlert('pw', 'Eroare de conexiune.'); }
+
+    btn.disabled = false; btn.textContent = 'Schimbă parola';
+  }
+
+  // ── CANCEL RESERVATION ──
+  function openCancel(id) {
+    cancelTarget = id;
+    document.getElementById('cancel-modal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('cancel-modal').classList.remove('open');
+    cancelTarget = null;
+  }
+  async function doCancel() {
+    if (!cancelTarget) return;
+    const btn = document.getElementById('confirm-cancel-btn');
+    btn.textContent = 'Se anulează...'; btn.disabled = true;
+
+    const body = new FormData();
+    body.append('id', cancelTarget);
+
+    try {
+      const r    = await fetch('api/cancel_rezervare.php', { method: 'POST', body });
+      const data = await r.json();
+      if (data.success) {
+        closeModal();
+        showToast('Rezervarea a fost anulată.', '✓');
+        await loadReservations();
+      } else {
+        showToast(data.message || 'Eroare la anulare.', '⚠');
+        closeModal();
+      }
+    } catch(e) { showToast('Eroare de conexiune.', '⚠'); closeModal(); }
+
+    btn.textContent = 'Da, anulează'; btn.disabled = false;
+  }
+
+  // ── TAB SWITCHING ──
+  function showTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.side-item').forEach(i => i.classList.remove('active'));
+    document.getElementById(`panel-${tab}`).classList.add('active');
+    event.currentTarget?.classList.add('active');
+  }
+
+  // ── HELPERS ──
+  function formatDate(str) {
+    if (!str) return '—';
+    return new Date(str).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function formatRoom(t) {
+    const map = { standard: 'Standard', deluxe: 'Deluxe', suite: 'Suite' };
+    return map[t] || t || '—';
+  }
+  function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    input.type  = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '◎' : '●';
+  }
+  function showAlert(type, msg, kind = 'error') {
+    const el   = document.getElementById(`${type}-alert`);
+    const icon = document.getElementById(`${type}-alert-icon`);
+    const text = document.getElementById(`${type}-alert-text`);
+    text.textContent = msg;
+    icon.textContent = kind === 'error' ? '⚠' : '✓';
+    el.className = `alert visible ${kind}`;
+  }
+  function showToast(msg, icon = '✓') {
+    document.getElementById('toast-text').textContent = msg;
+    document.getElementById('toast-icon').textContent = icon;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // close modal on overlay click
+  document.getElementById('cancel-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  init();
+</script>
+</body>
+</html>

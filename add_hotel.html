@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelFinder — Adaugă Hotel</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold:       #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim:   rgba(201,168,76,0.13);
+    --gold-line:  rgba(201,168,76,0.25);
+    --black:      #080808;
+    --dark:       #0F0F0F;
+    --dark2:      #161616;
+    --dark3:      #1E1E1E;
+    --dark4:      #272727;
+    --text:       #EDE8DE;
+    --text-muted: #8A7D65;
+    --text-faint: #4A4035;
+    --red:        #E05252;
+    --green:      #52C07A;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'Montserrat', sans-serif;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-line); }
+  body { background: var(--dark); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
+
+  /* NAV */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 3rem; background: rgba(8,8,8,0.96); backdrop-filter: blur(16px); border-bottom: 1px solid var(--gold-line); }
+  .nav-left { display: flex; align-items: center; gap: 14px; }
+  .nav-logo { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-tag { font-size: 8px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--black); background: var(--gold); padding: 3px 8px; border-radius: 1px; }
+  .nav-back { font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
+  .nav-back:hover { color: var(--gold); }
+  .btn-gold { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); padding: 9px 22px; background: var(--gold); border: 1px solid var(--gold); border-radius: 1px; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+  .btn-gold:hover:not(:disabled) { background: var(--gold-light); }
+  .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* PAGE */
+  .page { max-width: 900px; margin: 0 auto; padding: 108px 3rem 4rem; }
+  .page-header { margin-bottom: 2.5rem; }
+  .page-eyebrow { font-size: 9px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .page-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--gold-line); }
+  .page-title { font-family: var(--serif); font-size: 40px; font-weight: 300; color: var(--text); }
+  .page-title em { font-style: italic; color: var(--gold); }
+
+  /* FORM SECTIONS */
+  .form-section { background: var(--dark2); border: 1px solid rgba(255,255,255,0.05); border-radius: 1px; padding: 28px; margin-bottom: 16px; }
+  .form-section-title { font-size: 9px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 22px; display: flex; align-items: center; gap: 16px; }
+  .form-section-title::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); }
+
+  /* FIELDS */
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .field-group { margin-bottom: 4px; }
+  .field-group.full { grid-column: 1 / -1; }
+  .field-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+  .field-label .req { color: var(--gold); margin-left: 3px; }
+  .field-input {
+    width: 100%; background: var(--dark3); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 1px; outline: none; font-family: var(--sans); font-size: 13px; font-weight: 300;
+    color: var(--text); padding: 12px 16px; transition: border-color 0.2s;
+  }
+  .field-input::placeholder { color: var(--text-faint); }
+  .field-input:focus { border-color: var(--gold-line); }
+  .field-input.error { border-color: var(--red); }
+  textarea.field-input { resize: vertical; min-height: 110px; }
+  .field-hint { font-size: 9px; color: var(--text-faint); margin-top: 5px; line-height: 1.5; }
+  .field-select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234A4035'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  .field-select option { background: var(--dark2); }
+
+  /* STARS PICKER */
+  .stars-picker { display: flex; gap: 8px; margin-bottom: 4px; }
+  .star-pick-btn { font-size: 28px; cursor: pointer; color: var(--text-faint); transition: color 0.15s, transform 0.15s; background: none; border: none; padding: 0; line-height: 1; }
+  .star-pick-btn.active { color: var(--gold); }
+  .star-pick-btn:hover { transform: scale(1.2); }
+
+  /* AMENITIES CHECKBOXES */
+  .amenities-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .amenity-check {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--dark3); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 1px; padding: 10px 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .amenity-check:hover { border-color: var(--gold-line); }
+  .amenity-check.selected { border-color: var(--gold); background: var(--gold-dim); }
+  .amenity-check input { display: none; }
+  .amenity-checkbox { width: 14px; height: 14px; border-radius: 1px; border: 1px solid var(--text-faint); display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all 0.2s; flex-shrink: 0; }
+  .amenity-check.selected .amenity-checkbox { border-color: var(--gold); color: var(--gold); }
+  .amenity-icon { font-size: 15px; }
+  .amenity-label { font-size: 10px; font-weight: 300; color: var(--text-muted); }
+  .amenity-check.selected .amenity-label { color: var(--text); }
+
+  /* IMAGE URLS */
+  .image-urls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .image-url-row { display: flex; gap: 8px; align-items: center; }
+  .image-url-row .field-input { flex: 1; }
+  .btn-remove-img { background: none; border: 1px solid rgba(224,82,82,0.25); border-radius: 1px; color: #F09090; width: 36px; height: 40px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .btn-remove-img:hover { background: rgba(224,82,82,0.1); }
+  .btn-add-img { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); background: none; border: 1px dashed var(--gold-line); border-radius: 1px; padding: 10px 16px; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .btn-add-img:hover { border-color: var(--gold); background: var(--gold-dim); }
+
+  /* IMAGE PREVIEW */
+  .img-preview-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .img-preview { width: 80px; height: 60px; border-radius: 1px; border: 1px solid var(--gold-line); overflow: hidden; position: relative; }
+  .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .img-preview-placeholder { width: 100%; height: 100%; background: var(--dark4); display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0.4; }
+
+  /* ALERT */
+  .alert { border-radius: 1px; padding: 13px 16px; margin-bottom: 20px; font-size: 11px; font-weight: 300; display: none; align-items: center; gap: 10px; line-height: 1.6; }
+  .alert.visible { display: flex; }
+  .alert.error   { background: rgba(224,82,82,0.1); border: 1px solid rgba(224,82,82,0.25); color: #F09090; }
+  .alert.success { background: rgba(82,192,122,0.1); border: 1px solid rgba(82,192,122,0.25); color: #90D0A8; }
+
+  /* SUBMIT ROW */
+  .submit-row { display: flex; gap: 14px; margin-top: 20px; align-items: center; }
+  .btn-back-link { font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .btn-back-link:hover { color: var(--gold); }
+  .btn-submit {
+    background: var(--gold); border: 1px solid var(--gold); border-radius: 1px;
+    padding: 15px 40px; font-family: var(--sans); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--black);
+    cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 10px;
+  }
+  .btn-submit:hover:not(:disabled) { background: var(--gold-light); border-color: var(--gold-light); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-submit .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.3); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .btn-submit.loading .btn-text { display: none; }
+  .btn-submit.loading .spinner  { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* PAGE LOADER */
+  .page-loader { position: fixed; inset: 0; z-index: 500; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.5s; }
+  .page-loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-ring { width: 44px; height: 44px; border: 1px solid var(--gold-line); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loader-text { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 14px 20px; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s ease; min-width: 260px; }
+  .toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 15px; color: var(--gold); }
+  .toast-text { font-size: 12px; color: var(--text); }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 1.5rem; }
+    .page { padding: 100px 1.5rem 3rem; }
+    .field-grid, .field-grid-3 { grid-template-columns: 1fr; }
+    .amenities-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="page-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Se încarcă formularul</div>
+</div>
+
+<nav>
+  <div class="nav-left">
+    <a href="index.html" class="nav-logo">Hotel<span>Finder</span></a>
+    <span class="nav-tag">Admin</span>
+  </div>
+  <a href="admin_dashboard.html" class="nav-back">← Dashboard</a>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-eyebrow" id="form-eyebrow">Adaugă</div>
+    <div class="page-title" id="form-title">Hotel <em>Nou</em></div>
+  </div>
+
+  <div class="alert" id="main-alert">
+    <span id="alert-icon">⚠</span><span id="alert-text"></span>
+  </div>
+
+  <!-- INFORMAȚII DE BAZĂ -->
+  <div class="form-section">
+    <div class="form-section-title">Informații de bază</div>
+    <div class="field-grid">
+      <div class="field-group">
+        <label class="field-label">Nume hotel <span class="req">*</span></label>
+        <input class="field-input" type="text" id="name" placeholder="Grand Palace Hotel" required>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Locație <span class="req">*</span></label>
+        <input class="field-input" type="text" id="location" placeholder="București, Centru" required>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Preț per noapte (RON) <span class="req">*</span></label>
+        <input class="field-input" type="number" id="price" min="1" placeholder="450" required>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Clasificare stele</label>
+        <div class="stars-picker" id="stars-picker">
+          <button type="button" class="star-pick-btn active" data-val="1" onclick="setStar(1)">★</button>
+          <button type="button" class="star-pick-btn active" data-val="2" onclick="setStar(2)">★</button>
+          <button type="button" class="star-pick-btn active" data-val="3" onclick="setStar(3)">★</button>
+          <button type="button" class="star-pick-btn active" data-val="4" onclick="setStar(4)">★</button>
+          <button type="button" class="star-pick-btn" data-val="5" onclick="setStar(5)">★</button>
+        </div>
+        <input type="hidden" id="stars" value="4">
+      </div>
+      <div class="field-group full">
+        <label class="field-label">Descriere <span class="req">*</span></label>
+        <textarea class="field-input" id="description" placeholder="Descrie hotelul, atmosfera, punctele forte, ce îl face special..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- GALERIE FOTO -->
+  <div class="form-section">
+    <div class="form-section-title">Galerie foto</div>
+    <div class="field-hint" style="margin-bottom:14px;">Adaugă URL-uri de imagini (Unsplash, Google Photos, etc.). Prima imagine va fi imaginea principală.</div>
+    <div class="image-urls" id="image-urls">
+      <div class="image-url-row">
+        <input class="field-input" type="url" placeholder="https://images.unsplash.com/..." oninput="updatePreviews()">
+        <button type="button" class="btn-remove-img" onclick="removeImgRow(this)" title="Elimină">✕</button>
+      </div>
+    </div>
+    <button type="button" class="btn-add-img" onclick="addImgRow()">
+      <span>+</span> Adaugă imagine
+    </button>
+    <div class="img-preview-grid" id="img-previews"></div>
+  </div>
+
+  <!-- FACILITĂȚI -->
+  <div class="form-section">
+    <div class="form-section-title">Facilități</div>
+    <div class="amenities-grid" id="amenities-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- DETALII SUPLIMENTARE -->
+  <div class="form-section">
+    <div class="form-section-title">Detalii suplimentare</div>
+    <div class="field-grid-3">
+      <div class="field-group">
+        <label class="field-label">Check-in</label>
+        <input class="field-input" type="text" id="checkin_time" placeholder="14:00" value="14:00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Check-out</label>
+        <input class="field-input" type="text" id="checkout_time" placeholder="12:00" value="12:00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Animale de companie</label>
+        <select class="field-input field-select" id="pets">
+          <option value="no">Nu sunt permise</option>
+          <option value="request">La cerere</option>
+          <option value="yes">Permise</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Telefon contact</label>
+        <input class="field-input" type="tel" id="contact_phone" placeholder="+40 21 xxx xxxx">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Website</label>
+        <input class="field-input" type="url" id="website" placeholder="https://hotelname.ro">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Marchează ca „Nou"</label>
+        <select class="field-input field-select" id="is_new">
+          <option value="0">Nu</option>
+          <option value="1">Da</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-row">
+    <button class="btn-submit" id="submit-btn" onclick="saveHotel()">
+      <span class="btn-text" id="submit-text">Adaugă hotelul</span>
+      <div class="spinner"></div>
+    </button>
+    <a href="admin_dashboard.html" class="btn-back-link">Anulează</a>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✓</div>
+  <div class="toast-text" id="toast-text"></div>
+</div>
+
+<script>
+  const params  = new URLSearchParams(window.location.search);
+  const editId  = params.get('edit');
+  let selStars  = 4;
+  let selAmenities = new Set();
+
+  const AMENITIES = [
+    { key: 'wifi',        icon: '📶', label: 'Wi-Fi gratuit' },
+    { key: 'parking',     icon: '🚗', label: 'Parcare' },
+    { key: 'pool',        icon: '🏊', label: 'Piscină' },
+    { key: 'spa',         icon: '💆', label: 'Spa & Wellness' },
+    { key: 'gym',         icon: '🏋️', label: 'Sală fitness' },
+    { key: 'restaurant',  icon: '🍽️', label: 'Restaurant' },
+    { key: 'bar',         icon: '🍸', label: 'Bar' },
+    { key: 'ac',          icon: '❄️', label: 'Aer condiționat' },
+    { key: 'pets',        icon: '🐾', label: 'Animale permise' },
+    { key: 'breakfast',   icon: '☕', label: 'Mic dejun' },
+    { key: 'airport',     icon: '✈️', label: 'Transfer aeroport' },
+    { key: 'roomservice', icon: '🛎️', label: 'Room service' },
+  ];
+
+  // ── INIT ──
+  async function init() {
+    // Auth check
+    try {
+      const s = await fetch('api/check_session.php').then(r => r.json());
+      if (!s.logged_in || s.role !== 'admin') { window.location.href = 'login.html'; return; }
+    } catch(e) { window.location.href = 'login.html'; return; }
+
+    renderAmenities();
+
+    if (editId) {
+      document.getElementById('form-eyebrow').textContent = 'Editează';
+      document.getElementById('form-title').innerHTML = 'Editează <em>Hotelul</em>';
+      document.getElementById('submit-text').textContent = 'Salvează modificările';
+      document.title = 'HotelFinder — Editează Hotel';
+      await loadHotelData();
+    }
+
+    document.getElementById('page-loader').classList.add('hidden');
+  }
+
+  function renderAmenities() {
+    const grid = document.getElementById('amenities-grid');
+    grid.innerHTML = AMENITIES.map(a => `
+      <label class="amenity-check" id="amen-${a.key}" onclick="toggleAmenity('${a.key}', this)">
+        <input type="checkbox" value="${a.key}">
+        <div class="amenity-checkbox"></div>
+        <span class="amenity-icon">${a.icon}</span>
+        <span class="amenity-label">${a.label}</span>
+      </label>`).join('');
+  }
+
+  function toggleAmenity(key, el) {
+    el.classList.toggle('selected');
+    const cb = el.querySelector('.amenity-checkbox');
+    if (el.classList.contains('selected')) { selAmenities.add(key); cb.textContent = '✓'; }
+    else { selAmenities.delete(key); cb.textContent = ''; }
+  }
+
+  // ── LOAD HOTEL DATA FOR EDIT ──
+  async function loadHotelData() {
+    try {
+      const d = await fetch(`api/get_hotel.php?id=${editId}`).then(r => r.json());
+      if (d.error) { window.location.href = 'admin_dashboard.html'; return; }
+
+      document.getElementById('name').value          = d.name || '';
+      document.getElementById('location').value      = d.location || '';
+      document.getElementById('price').value         = d.price || '';
+      document.getElementById('description').value   = d.description || '';
+      document.getElementById('checkin_time').value  = d.checkin_time || '14:00';
+      document.getElementById('checkout_time').value = d.checkout_time || '12:00';
+      document.getElementById('pets').value          = d.pets || 'request';
+      document.getElementById('is_new').value        = d.is_new || '0';
+      document.getElementById('contact_phone').value = d.contact_phone || '';
+      document.getElementById('website').value       = d.website || '';
+
+      setStar(parseInt(d.stars) || 4);
+
+      // Images
+      const imgs = d.images || [];
+      const container = document.getElementById('image-urls');
+      container.innerHTML = '';
+      (imgs.length ? imgs : ['']).forEach(url => {
+        const row = makeImgRow(url);
+        container.appendChild(row);
+      });
+      updatePreviews();
+
+      // Amenities
+      if (d.amenities) {
+        d.amenities.split(',').map(a => a.trim()).forEach(key => {
+          const el = document.getElementById(`amen-${key}`);
+          if (el) { el.classList.add('selected'); selAmenities.add(key); el.querySelector('.amenity-checkbox').textContent = '✓'; }
+        });
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  // ── STARS ──
+  function setStar(val) {
+    selStars = val;
+    document.getElementById('stars').value = val;
+    document.querySelectorAll('.star-pick-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.val) <= val);
+    });
+  }
+
+  // ── IMAGES ──
+  function makeImgRow(url = '') {
+    const row = document.createElement('div');
+    row.className = 'image-url-row';
+    row.innerHTML = `<input class="field-input" type="url" placeholder="https://images.unsplash.com/..." value="${url}" oninput="updatePreviews()">
+      <button type="button" class="btn-remove-img" onclick="removeImgRow(this)" title="Elimină">✕</button>`;
+    return row;
+  }
+
+  function addImgRow() {
+    document.getElementById('image-urls').appendChild(makeImgRow());
+  }
+
+  function removeImgRow(btn) {
+    const rows = document.querySelectorAll('.image-url-row');
+    if (rows.length <= 1) { btn.closest('.image-url-row').querySelector('input').value = ''; updatePreviews(); return; }
+    btn.closest('.image-url-row').remove();
+    updatePreviews();
+  }
+
+  function updatePreviews() {
+    const urls = getImageUrls();
+    const container = document.getElementById('img-previews');
+    container.innerHTML = urls.filter(u => u).map(url =>
+      `<div class="img-preview">
+        <img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<div class=img-preview-placeholder>🏨</div>'">
+      </div>`).join('');
+  }
+
+  function getImageUrls() {
+    return Array.from(document.querySelectorAll('#image-urls input')).map(i => i.value.trim()).filter(Boolean);
+  }
+
+  // ── SAVE ──
+  async function saveHotel() {
+    clearAlert();
+    const name  = document.getElementById('name').value.trim();
+    const loc   = document.getElementById('location').value.trim();
+    const price = document.getElementById('price').value.trim();
+    const desc  = document.getElementById('description').value.trim();
+
+    if (!name || !loc || !price || !desc) { showAlert('Completează câmpurile obligatorii: Nume, Locație, Preț, Descriere.'); return; }
+    if (isNaN(price) || parseFloat(price) <= 0) { showAlert('Prețul trebuie să fie un număr pozitiv.'); return; }
+
+    const btn = document.getElementById('submit-btn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const body = new FormData();
+    body.append('name',         name);
+    body.append('location',     loc);
+    body.append('price',        price);
+    body.append('description',  desc);
+    body.append('stars',        selStars);
+    body.append('amenities',    Array.from(selAmenities).join(','));
+    body.append('images',       JSON.stringify(getImageUrls()));
+    body.append('checkin_time', document.getElementById('checkin_time').value);
+    body.append('checkout_time',document.getElementById('checkout_time').value);
+    body.append('pets',         document.getElementById('pets').value);
+    body.append('is_new',       document.getElementById('is_new').value);
+    body.append('contact_phone',document.getElementById('contact_phone').value.trim());
+    body.append('website',      document.getElementById('website').value.trim());
+    if (editId) body.append('id', editId);
+
+    try {
+      const url = editId ? 'api/update_hotel.php' : 'api/add_hotel.php';
+      const r   = await fetch(url, { method: 'POST', body });
+      const d   = await r.json();
+
+      if (d.success) {
+        showToast(editId ? 'Hotel actualizat!' : 'Hotel adăugat!', '✓');
+        setTimeout(() => window.location.href = 'admin_dashboard.html', 1200);
+      } else {
+        showAlert(d.message || 'Eroare la salvare.'); btn.classList.remove('loading'); btn.disabled = false;
+      }
+    } catch(e) {
+      showAlert('Eroare de conexiune.'); btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('main-alert');
+    document.getElementById('alert-text').textContent = msg;
+    document.getElementById('alert-icon').textContent = type === 'error' ? '⚠' : '✓';
+    el.className = `alert visible ${type}`;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function clearAlert() { document.getElementById('main-alert').classList.remove('visible'); }
+  function showToast(msg, icon = '✓') {
+    document.getElementById('toast-text').textContent = msg;
+    document.getElementById('toast-icon').textContent = icon;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  init();
+</script>
+</body>
+</html>

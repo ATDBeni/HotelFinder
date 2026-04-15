@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelFinder — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold:       #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim:   rgba(201,168,76,0.13);
+    --gold-line:  rgba(201,168,76,0.25);
+    --black:      #080808;
+    --dark:       #0F0F0F;
+    --dark2:      #161616;
+    --dark3:      #1E1E1E;
+    --dark4:      #272727;
+    --text:       #EDE8DE;
+    --text-muted: #8A7D65;
+    --text-faint: #4A4035;
+    --red:        #E05252;
+    --green:      #52C07A;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'Montserrat', sans-serif;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-line); }
+  html { scroll-behavior: smooth; }
+  body { background: var(--dark); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 68px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; background: rgba(8,8,8,0.97); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--gold-line);
+  }
+  .nav-left { display: flex; align-items: center; gap: 16px; }
+  .nav-logo { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-tag { font-size: 8px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--black); background: var(--gold); padding: 3px 8px; border-radius: 1px; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-admin { font-size: 10px; font-weight: 300; color: var(--text-muted); }
+  .nav-admin span { color: var(--gold); font-weight: 400; }
+  .btn-ghost { font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); padding: 7px 16px; border: 1px solid var(--gold-line); border-radius: 1px; text-decoration: none; transition: all 0.2s; background: transparent; cursor: pointer; }
+  .btn-ghost:hover { background: var(--gold-dim); }
+  .btn-gold { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); padding: 8px 18px; background: var(--gold); border: 1px solid var(--gold); border-radius: 1px; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+  .btn-gold:hover { background: var(--gold-light); }
+
+  /* LAYOUT */
+  .page { display: flex; min-height: 100vh; padding-top: 68px; }
+
+  /* SIDEBAR */
+  .side-nav {
+    width: 240px; flex-shrink: 0;
+    background: var(--dark2); border-right: 1px solid var(--gold-line);
+    padding: 2rem 0; position: sticky; top: 68px;
+    height: calc(100vh - 68px); overflow-y: auto;
+  }
+  .side-section-label { font-size: 8px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-faint); padding: 0 1.25rem; margin-bottom: 8px; margin-top: 1.5rem; }
+  .side-section-label:first-child { margin-top: 0; }
+  .side-menu { display: flex; flex-direction: column; gap: 2px; padding: 0 0.75rem; }
+  .side-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 1px; font-size: 11px; font-weight: 400; letter-spacing: 0.04em; color: var(--text-muted); cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+  .side-item:hover { color: var(--text); background: var(--dark3); }
+  .side-item.active { color: var(--gold); background: var(--gold-dim); border-color: var(--gold-line); }
+  .side-icon { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+  .side-badge { margin-left: auto; background: var(--gold); color: var(--black); font-size: 9px; font-weight: 600; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+  .side-divider { height: 1px; background: var(--gold-line); margin: 10px 1.25rem; }
+
+  /* MAIN */
+  .main { flex: 1; padding: 2rem 2.5rem; overflow-x: hidden; min-width: 0; }
+
+  /* PANELS */
+  .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .panel-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; }
+  .panel-title-wrap {}
+  .panel-eyebrow { font-size: 9px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+  .panel-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--gold-line); }
+  .panel-title { font-family: var(--serif); font-size: 32px; font-weight: 300; color: var(--text); }
+  .panel-title em { font-style: italic; color: var(--gold); }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 2rem; }
+  .stat-card { background: var(--dark2); border: 1px solid rgba(255,255,255,0.05); border-radius: 1px; padding: 18px 20px; transition: border-color 0.2s; }
+  .stat-card:hover { border-color: var(--gold-line); }
+  .stat-label { font-size: 9px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+  .stat-value { font-family: var(--serif); font-size: 38px; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 4px; }
+  .stat-sub { font-size: 10px; font-weight: 300; color: var(--text-faint); }
+  .stat-trend { font-size: 10px; margin-top: 6px; }
+  .trend-up { color: var(--green); }
+  .trend-down { color: var(--red); }
+
+  /* SECTION TITLE */
+  .section-title { font-size: 9px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; display: flex; align-items: center; gap: 14px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); }
+
+  /* TABLE */
+  .table-wrap { background: var(--dark2); border: 1px solid rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; margin-bottom: 2rem; }
+  .table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 12px; flex-wrap: wrap; }
+  .search-input { background: var(--dark3); border: 1px solid rgba(255,255,255,0.07); border-radius: 1px; outline: none; padding: 8px 14px; font-family: var(--sans); font-size: 11px; font-weight: 300; color: var(--text); width: 220px; transition: border-color 0.2s; }
+  .search-input::placeholder { color: var(--text-faint); }
+  .search-input:focus { border-color: var(--gold-line); }
+  .table-actions { display: flex; gap: 8px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--gold-line); }
+  th { padding: 11px 16px; font-size: 8px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); text-align: left; white-space: nowrap; }
+  td { padding: 13px 16px; font-size: 12px; font-weight: 300; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  .td-name { color: var(--text); font-weight: 400; font-family: var(--serif); font-size: 15px; }
+  .td-code { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: var(--text-faint); }
+  .td-price { color: var(--gold); font-family: var(--serif); font-size: 16px; font-weight: 300; }
+  .td-img { width: 48px; height: 36px; border-radius: 1px; object-fit: cover; background: var(--dark4); display: flex; align-items: center; justify-content: center; font-size: 18px; opacity: 0.5; overflow: hidden; }
+  .td-img img { width: 100%; height: 100%; object-fit: cover; opacity: 1; font-size: 0; }
+
+  /* STATUS BADGES */
+  .badge { display: inline-block; font-size: 8px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 1px; white-space: nowrap; }
+  .badge-pending   { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-line); }
+  .badge-confirmed { background: rgba(82,192,122,0.1); color: #7DD8A0; border: 1px solid rgba(82,192,122,0.25); }
+  .badge-cancelled { background: rgba(224,82,82,0.1); color: #F09090; border: 1px solid rgba(224,82,82,0.25); }
+  .badge-completed { background: rgba(255,255,255,0.05); color: var(--text-faint); border: 1px solid rgba(255,255,255,0.08); }
+
+  /* ACTION BUTTONS */
+  .btn-row-sm { display: flex; gap: 6px; }
+  .btn-xs { font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 10px; border-radius: 1px; cursor: pointer; transition: all 0.2s; border: 1px solid; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap; }
+  .btn-xs-gold { border-color: var(--gold-line); color: var(--gold); background: transparent; }
+  .btn-xs-gold:hover { background: var(--gold-dim); }
+  .btn-xs-green { border-color: rgba(82,192,122,0.3); color: #7DD8A0; background: transparent; }
+  .btn-xs-green:hover { background: rgba(82,192,122,0.1); }
+  .btn-xs-red { border-color: rgba(224,82,82,0.3); color: #F09090; background: transparent; }
+  .btn-xs-red:hover { background: rgba(224,82,82,0.1); }
+  .btn-xs-muted { border-color: rgba(255,255,255,0.08); color: var(--text-faint); background: transparent; }
+  .btn-xs-muted:hover { border-color: var(--gold-line); color: var(--text-muted); }
+
+  /* STARS */
+  .stars-sm { display: flex; gap: 2px; }
+  .star { color: var(--gold); font-size: 10px; }
+  .star.empty { color: var(--text-faint); }
+
+  /* EMPTY */
+  .table-empty { padding: 40px; text-align: center; color: var(--text-faint); font-size: 13px; }
+  .table-empty-icon { font-size: 32px; opacity: 0.2; margin-bottom: 12px; }
+
+  /* PAGINATION */
+  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .page-info { font-size: 10px; color: var(--text-faint); }
+  .page-btns { display: flex; gap: 6px; }
+  .page-btn { width: 28px; height: 28px; border: 1px solid rgba(255,255,255,0.07); border-radius: 1px; background: transparent; color: var(--text-muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .page-btn:hover { border-color: var(--gold-line); color: var(--gold); }
+  .page-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 28px; max-width: 440px; width: 90%; animation: fadeIn 0.3s ease; }
+  .modal-title { font-family: var(--serif); font-size: 24px; font-weight: 300; color: var(--text); margin-bottom: 10px; }
+  .modal-sub { font-size: 12px; font-weight: 300; color: var(--text-muted); line-height: 1.7; margin-bottom: 22px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .modal-input { width: 100%; background: var(--dark3); border: 1px solid rgba(255,255,255,0.07); border-radius: 1px; outline: none; padding: 10px 14px; font-family: var(--sans); font-size: 12px; font-weight: 300; color: var(--text); transition: border-color 0.2s; }
+  .modal-input:focus { border-color: var(--gold-line); }
+  .modal-select { width: 100%; background: var(--dark3); border: 1px solid rgba(255,255,255,0.07); border-radius: 1px; outline: none; padding: 10px 14px; font-family: var(--sans); font-size: 12px; font-weight: 300; color: var(--text); cursor: pointer; }
+  .modal-select option { background: var(--dark2); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-modal-cancel { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 1px; padding: 11px; font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+  .btn-modal-cancel:hover { border-color: var(--gold-line); color: var(--text); }
+  .btn-modal-confirm { flex: 1; background: var(--gold); border: 1px solid var(--gold); border-radius: 1px; padding: 11px; font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--black); cursor: pointer; transition: all 0.2s; }
+  .btn-modal-confirm:hover { background: var(--gold-light); }
+  .btn-modal-danger { flex: 1; background: rgba(224,82,82,0.15); border: 1px solid rgba(224,82,82,0.3); border-radius: 1px; padding: 11px; font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #F09090; cursor: pointer; transition: all 0.2s; }
+  .btn-modal-danger:hover { background: rgba(224,82,82,0.25); }
+
+  /* ALERT */
+  .alert { border-radius: 1px; padding: 11px 15px; margin-bottom: 14px; font-size: 11px; font-weight: 300; display: none; align-items: center; gap: 10px; }
+  .alert.visible { display: flex; }
+  .alert.error   { background: rgba(224,82,82,0.1); border: 1px solid rgba(224,82,82,0.25); color: #F09090; }
+  .alert.success { background: rgba(82,192,122,0.1); border: 1px solid rgba(82,192,122,0.25); color: #90D0A8; }
+
+  /* LOADER */
+  .page-loader { position: fixed; inset: 0; z-index: 500; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.5s; }
+  .page-loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-ring { width: 44px; height: 44px; border: 1px solid var(--gold-line); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; background: var(--dark2); border: 1px solid var(--gold-line); border-radius: 1px; padding: 14px 20px; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s ease; min-width: 260px; }
+  .toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 15px; color: var(--gold); }
+  .toast-text { font-size: 12px; color: var(--text); }
+
+  /* CHART AREA */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 2rem; }
+  .chart-card { background: var(--dark2); border: 1px solid rgba(255,255,255,0.05); border-radius: 1px; padding: 20px; }
+  .chart-title { font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .mini-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .mini-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .mini-bar { width: 100%; background: var(--gold-dim); border-top: 2px solid var(--gold); border-radius: 1px; transition: height 0.6s ease; min-height: 2px; }
+  .mini-bar-label { font-size: 8px; color: var(--text-faint); letter-spacing: 0.04em; }
+  .activity-list { display: flex; flex-direction: column; gap: 0; }
+  .activity-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .activity-text { font-size: 11px; font-weight: 300; color: var(--text-muted); flex: 1; line-height: 1.5; }
+  .activity-time { font-size: 9px; color: var(--text-faint); flex-shrink: 0; }
+
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    .chart-grid  { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    .page { flex-direction: column; }
+    .side-nav { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--gold-line); padding: 1rem; }
+    .side-menu { flex-direction: row; flex-wrap: wrap; }
+    .side-section-label { display: none; }
+    .main { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="page-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Se încarcă dashboard-ul</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a href="index.html" class="nav-logo">Hotel<span>Finder</span></a>
+    <span class="nav-tag">Admin</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-admin">Conectat ca <span id="nav-name">Admin</span></span>
+    <a href="index.html" class="btn-ghost">Site public</a>
+    <a href="api/logout.php" class="btn-gold">Deconectare</a>
+  </div>
+</nav>
+
+<!-- DELETE HOTEL MODAL -->
+<div class="modal-overlay" id="del-hotel-modal">
+  <div class="modal">
+    <div class="modal-title">Ștergi hotelul?</div>
+    <div class="modal-sub">Această acțiune este ireversibilă. Toate rezervările și recenziile asociate vor fi șterse.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('del-hotel-modal')">Anulează</button>
+      <button class="btn-modal-danger" id="del-hotel-btn" onclick="doDeleteHotel()">Șterge definitiv</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS MODAL -->
+<div class="modal-overlay" id="status-modal">
+  <div class="modal">
+    <div class="modal-title">Schimbă statusul</div>
+    <div class="modal-sub">Selectează noul status pentru rezervarea <strong id="status-modal-code">—</strong>.</div>
+    <div class="modal-field">
+      <label class="modal-label">Status</label>
+      <select class="modal-select" id="status-select">
+        <option value="pending">În așteptare</option>
+        <option value="confirmed">Confirmată</option>
+        <option value="completed">Finalizată</option>
+        <option value="cancelled">Anulată</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('status-modal')">Anulează</button>
+      <button class="btn-modal-confirm" onclick="doStatusChange()">Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE REZ MODAL -->
+<div class="modal-overlay" id="del-rez-modal">
+  <div class="modal">
+    <div class="modal-title">Ștergi rezervarea?</div>
+    <div class="modal-sub">Rezervarea va fi eliminată definitiv din sistem.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('del-rez-modal')">Anulează</button>
+      <button class="btn-modal-danger" id="del-rez-btn" onclick="doDeleteRez()">Șterge</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE USER MODAL -->
+<div class="modal-overlay" id="del-user-modal">
+  <div class="modal">
+    <div class="modal-title">Ștergi utilizatorul?</div>
+    <div class="modal-sub">Toate datele și rezervările acestui utilizator vor fi șterse definitiv.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('del-user-modal')">Anulează</button>
+      <button class="btn-modal-danger" id="del-user-btn" onclick="doDeleteUser()">Șterge</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <!-- SIDEBAR -->
+  <div class="side-nav">
+    <div class="side-section-label">General</div>
+    <div class="side-menu">
+      <div class="side-item active" onclick="showTab('overview', this)"><span class="side-icon">◎</span>Prezentare</div>
+      <div class="side-divider"></div>
+      <div class="side-section-label" style="padding:0 0.5rem; margin-top:0;">Gestionare</div>
+      <div class="side-item" onclick="showTab('hotels', this)"><span class="side-icon">🏨</span>Hoteluri<span class="side-badge" id="badge-hotels">0</span></div>
+      <div class="side-item" onclick="showTab('rezervari', this)"><span class="side-icon">◻</span>Rezervări<span class="side-badge" id="badge-rez">0</span></div>
+      <div class="side-item" onclick="showTab('utilizatori', this)"><span class="side-icon">👤</span>Utilizatori<span class="side-badge" id="badge-users">0</span></div>
+      <div class="side-item" onclick="showTab('recenzii', this)"><span class="side-icon">★</span>Recenzii</div>
+      <div class="side-divider"></div>
+      <div class="side-item" onclick="showTab('disponibilitate', this)"><span class="side-icon">◉</span>Disponibilitate</div>
+      <div class="side-divider"></div>
+      <a class="side-item" href="add_hotel.html"><span class="side-icon">+</span>Adaugă hotel</a>
+      <a class="side-item" href="index.html"><span class="side-icon">←</span>Site public</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="tab-panel active" id="panel-overview">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <div class="panel-eyebrow">Admin Dashboard</div>
+          <div class="panel-title">Prezentare <em>Generală</em></div>
+        </div>
+        <a href="add_hotel.html" class="btn-gold">+ Adaugă hotel</a>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Hoteluri active</div><div class="stat-value" id="ov-hotels">—</div><div class="stat-sub">în platformă</div></div>
+        <div class="stat-card"><div class="stat-label">Rezervări totale</div><div class="stat-value" id="ov-rez">—</div><div class="stat-sub">din toate timpurile</div></div>
+        <div class="stat-card"><div class="stat-label">Utilizatori</div><div class="stat-value" id="ov-users">—</div><div class="stat-sub">conturi client</div></div>
+        <div class="stat-card"><div class="stat-label">Rezervări azi</div><div class="stat-value" id="ov-today">—</div><div class="stat-sub">în ultimele 24h</div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">Rezervări pe luni</div>
+          <div class="mini-bars" id="mini-bars">
+            <!-- populated by JS -->
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Activitate recentă</div>
+          <div class="activity-list" id="activity-list">
+            <div class="activity-item"><div class="loader-ring" style="width:20px;height:20px;border-width:1px;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Ultimele rezervări</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Cod</th><th>Client</th><th>Hotel</th><th>Check-in</th><th>Total</th><th>Status</th><th>Acțiuni</th>
+          </tr></thead>
+          <tbody id="recent-rez-tbody"><tr><td colspan="7" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ HOTELS ══ -->
+    <div class="tab-panel" id="panel-hotels">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <div class="panel-eyebrow">Gestionare</div>
+          <div class="panel-title">Ho<em>teluri</em></div>
+        </div>
+        <a href="add_hotel.html" class="btn-gold">+ Hotel nou</a>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="search-input" type="text" placeholder="Caută hotel..." oninput="filterTable('hotels-tbody', this.value, [1,2])">
+          <div class="table-actions"></div>
+        </div>
+        <table>
+          <thead><tr>
+            <th></th><th>Nume</th><th>Locație</th><th>Preț</th><th>Stele</th><th>Rating</th><th>Rezervări</th><th>Acțiuni</th>
+          </tr></thead>
+          <tbody id="hotels-tbody"><tr><td colspan="8" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ REZERVĂRI ══ -->
+    <div class="tab-panel" id="panel-rezervari">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <div class="panel-eyebrow">Gestionare</div>
+          <div class="panel-title">Rezer<em>vări</em></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="search-input" type="text" placeholder="Cod, client, hotel..." oninput="filterTable('rez-tbody', this.value, [0,1,2])">
+          <select class="search-input" style="width:140px;" onchange="filterRezStatus(this.value)">
+            <option value="">Toate statusurile</option>
+            <option value="pending">În așteptare</option>
+            <option value="confirmed">Confirmate</option>
+            <option value="completed">Finalizate</option>
+            <option value="cancelled">Anulate</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Cod</th><th>Client</th><th>Hotel</th><th>Check-in</th><th>Check-out</th><th>Nopți</th><th>Total</th><th>Status</th><th>Acțiuni</th>
+          </tr></thead>
+          <tbody id="rez-tbody"><tr><td colspan="9" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+        </table>
+        <div class="pagination" id="rez-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ══ UTILIZATORI ══ -->
+    <div class="tab-panel" id="panel-utilizatori">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <div class="panel-eyebrow">Gestionare</div>
+          <div class="panel-title">Utiliza<em>tori</em></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="search-input" type="text" placeholder="Nume, email..." oninput="filterTable('users-tbody', this.value, [0,1])">
+        </div>
+        <table>
+          <thead><tr>
+            <th>Nume</th><th>Email</th><th>Telefon</th><th>Rezervări</th><th>Înregistrat</th><th>Acțiuni</th>
+          </tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="6" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ RECENZII ══ -->
+    <div class="tab-panel" id="panel-recenzii">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <div class="panel-eyebrow">Gestionare</div>
+          <div class="panel-title">Recen<em>zii</em></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="search-input" type="text" placeholder="Hotel, client..." oninput="filterTable('reviews-tbody', this.value, [0,1,2])">
+        </div>
+        <table>
+          <thead><tr>
+            <th>Hotel</th><th>Client</th><th>Rating</th><th>Comentariu</th><th>Data</th><th>Acțiuni</th>
+          </tr></thead>
+          <tbody id="reviews-tbody"><tr><td colspan="6" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ DISPONIBILITATE ══ -->
+    <div class="tab-panel" id="panel-disponibilitate">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <div class="panel-eyebrow">Gestionare</div>
+          <div class="panel-title">Disponibi<em>litate</em></div>
+        </div>
+      </div>
+      <div style="max-width:560px;">
+        <div class="alert visible success" style="margin-bottom:20px;">
+          <span>ℹ</span><span>Blochează date specifice pentru un hotel (ex: renovare, eveniment privat).</span>
+        </div>
+        <div class="alert" id="avail-alert"><span id="avail-alert-icon">⚠</span><span id="avail-alert-text"></span></div>
+        <div class="table-wrap" style="padding:20px; margin-bottom:20px;">
+          <div class="modal-field">
+            <label class="modal-label">Hotel</label>
+            <select class="modal-select" id="avail-hotel" style="margin-bottom:12px;"></select>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Data de blocat</label>
+            <input type="date" class="modal-input" id="avail-date" style="margin-bottom:12px;">
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Motiv (opțional)</label>
+            <input type="text" class="modal-input" id="avail-reason" placeholder="Renovare, eveniment privat...">
+          </div>
+          <button class="btn-gold" style="margin-top:16px; width:100%;" onclick="addBlock()">Blochează data</button>
+        </div>
+
+        <div class="section-title">Date blocate</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hotel</th><th>Data</th><th>Motiv</th><th>Acțiuni</th></tr></thead>
+            <tbody id="blocked-tbody"><tr><td colspan="4" class="table-empty">Se încarcă...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✓</div>
+  <div class="toast-text" id="toast-text"></div>
+</div>
+
+<script>
+  let allRez = [], allHotels = [], allUsers = [], allReviews = [], allBlocked = [];
+  let delHotelTarget = null, delRezTarget = null, delUserTarget = null, statusTarget = null;
+
+  // ── INIT ──
+  async function init() {
+    try {
+      const s = await fetch('api/check_session.php').then(r => r.json());
+      if (!s.logged_in || s.role !== 'admin') { window.location.href = 'login.html'; return; }
+      document.getElementById('nav-name').textContent = (s.name || 'Admin').split(' ')[0];
+    } catch(e) { window.location.href = 'login.html'; return; }
+
+    await Promise.all([loadStats(), loadHotels(), loadRezervari(), loadUsers(), loadReviews(), loadBlocked()]);
+    document.getElementById('page-loader').classList.add('hidden');
+  }
+
+  // ── STATS ──
+  async function loadStats() {
+    try {
+      const d = await fetch('api/admin_stats.php').then(r => r.json());
+      document.getElementById('ov-hotels').textContent = d.hotels || 0;
+      document.getElementById('ov-rez').textContent    = d.rez    || 0;
+      document.getElementById('ov-users').textContent  = d.users  || 0;
+      document.getElementById('ov-today').textContent  = d.today  || 0;
+      renderMiniChart(d.monthly || []);
+      renderActivity(d.activity || []);
+    } catch(e) {}
+  }
+
+  function renderMiniChart(monthly) {
+    const container = document.getElementById('mini-bars');
+    if (!monthly.length) { container.innerHTML = '<div style="color:var(--text-faint);font-size:11px;">Fără date</div>'; return; }
+    const max = Math.max(...monthly.map(m => m.count), 1);
+    const months = ['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'];
+    container.innerHTML = monthly.map(m => {
+      const pct = Math.max(4, Math.round((m.count / max) * 100));
+      return `<div class="mini-bar-wrap">
+        <div class="mini-bar" style="height:${pct}%;"></div>
+        <div class="mini-bar-label">${months[parseInt(m.month)-1] || m.month}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderActivity(activity) {
+    const container = document.getElementById('activity-list');
+    if (!activity.length) { container.innerHTML = '<div style="color:var(--text-faint);font-size:11px;padding:10px 0;">Nicio activitate recentă.</div>'; return; }
+    const colors = { rezervare: 'var(--gold)', user: 'var(--green)', review: '#A78BF0' };
+    container.innerHTML = activity.map(a => `
+      <div class="activity-item">
+        <div class="activity-dot" style="background:${colors[a.type]||'var(--gold)'}"></div>
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${timeAgo(a.created_at)}</div>
+      </div>`).join('');
+  }
+
+  // ── HOTELS ──
+  async function loadHotels() {
+    try {
+      const d = await fetch('api/get_hotels.php').then(r => r.json());
+      allHotels = d;
+      document.getElementById('badge-hotels').textContent = d.length;
+      renderHotelsTable(d);
+      populateHotelSelect(d);
+    } catch(e) {}
+  }
+
+  function renderHotelsTable(hotels) {
+    const tbody = document.getElementById('hotels-tbody');
+    if (!hotels.length) { tbody.innerHTML = `<tr><td colspan="8" class="table-empty"><div class="table-empty-icon">🏨</div>Niciun hotel adăugat.</td></tr>`; return; }
+    tbody.innerHTML = hotels.map(h => {
+      const img = h.image_url ? (Array.isArray(JSON.parse(h.image_url||'null')) ? JSON.parse(h.image_url)[0] : h.image_url) : null;
+      const imgHtml = img ? `<img src="${img}" style="width:48px;height:36px;object-fit:cover;border-radius:1px;" onerror="this.outerHTML='🏨'">` : '<span style="font-size:18px;opacity:0.4;">🏨</span>';
+      const starsHtml = [1,2,3,4,5].map(s => `<span class="star${s>(parseInt(h.stars)||4)?' empty':''}">★</span>`).join('');
+      const rating = h.avg_rating ? parseFloat(h.avg_rating).toFixed(1) : '—';
+      return `<tr>
+        <td><div class="td-img">${imgHtml}</div></td>
+        <td><div class="td-name">${h.name}</div></td>
+        <td>${h.location||'—'}</td>
+        <td><span class="td-price">${h.price}</span> RON</td>
+        <td><div class="stars-sm">${starsHtml}</div></td>
+        <td>${rating} <span style="font-size:10px;color:var(--text-faint);">(${h.review_count||0})</span></td>
+        <td>${h.rez_count||0}</td>
+        <td><div class="btn-row-sm">
+          <a href="add_hotel.html?edit=${h.id}" class="btn-xs btn-xs-gold">Editează</a>
+          <button class="btn-xs btn-xs-red" onclick="openDelHotel(${h.id})">Șterge</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+
+    // Recent rez table in overview
+    const recentTbody = document.getElementById('recent-rez-tbody');
+    if (recentTbody && allRez.length) renderRecentRez(allRez.slice(0,8));
+  }
+
+  // ── REZERVĂRI ──
+  async function loadRezervari() {
+    try {
+      const d = await fetch('api/admin_get_rez.php').then(r => r.json());
+      allRez = d.rezervari || [];
+      document.getElementById('badge-rez').textContent = allRez.length;
+      renderRezTable(allRez);
+      renderRecentRez(allRez.slice(0,8));
+    } catch(e) {}
+  }
+
+  function renderRecentRez(list) {
+    const tbody = document.getElementById('recent-rez-tbody');
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Nicio rezervare.</td></tr>`; return; }
+    const statusMap = { pending:{cls:'badge-pending',label:'Așteptare'}, confirmed:{cls:'badge-confirmed',label:'Confirmată'}, cancelled:{cls:'badge-cancelled',label:'Anulată'}, completed:{cls:'badge-completed',label:'Finalizată'} };
+    tbody.innerHTML = list.map(r => {
+      const st = statusMap[r.status] || statusMap.pending;
+      return `<tr>
+        <td><span class="td-code">${r.booking_code||'#'+r.id}</span></td>
+        <td>${r.first_name} ${r.last_name}</td>
+        <td>${r.hotel_name||'—'}</td>
+        <td>${formatDate(r.checkin_date)}</td>
+        <td><span class="td-price">${parseFloat(r.total_price||0).toLocaleString('ro-RO')}</span> RON</td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td><div class="btn-row-sm">
+          <button class="btn-xs btn-xs-muted" onclick="openStatus(${r.id},'${r.booking_code||''}','${r.status}')">Status</button>
+          <button class="btn-xs btn-xs-red" onclick="openDelRez(${r.id})">Șterge</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderRezTable(list) {
+    const tbody = document.getElementById('rez-tbody');
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="9" class="table-empty"><div class="table-empty-icon">◻</div>Nicio rezervare.</td></tr>`; return; }
+    const statusMap = { pending:{cls:'badge-pending',label:'Așteptare'}, confirmed:{cls:'badge-confirmed',label:'Confirmată'}, cancelled:{cls:'badge-cancelled',label:'Anulată'}, completed:{cls:'badge-completed',label:'Finalizată'} };
+    tbody.innerHTML = list.map(r => {
+      const st = statusMap[r.status] || statusMap.pending;
+      return `<tr>
+        <td><span class="td-code">${r.booking_code||'#'+r.id}</span></td>
+        <td>${r.first_name} ${r.last_name}<br><span style="font-size:10px;color:var(--text-faint);">${r.email}</span></td>
+        <td>${r.hotel_name||'—'}</td>
+        <td>${formatDate(r.checkin_date)}</td>
+        <td>${formatDate(r.checkout_date)}</td>
+        <td>${r.nights||'—'}</td>
+        <td><span class="td-price">${parseFloat(r.total_price||0).toLocaleString('ro-RO')}</span> RON</td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td><div class="btn-row-sm">
+          <button class="btn-xs btn-xs-gold" onclick="openStatus(${r.id},'${r.booking_code||'#'+r.id}','${r.status}')">Status</button>
+          <button class="btn-xs btn-xs-red" onclick="openDelRez(${r.id})">Șterge</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterRezStatus(val) {
+    const filtered = val ? allRez.filter(r => r.status === val) : allRez;
+    renderRezTable(filtered);
+  }
+
+  // ── USERS ──
+  async function loadUsers() {
+    try {
+      const d = await fetch('api/admin_get_users.php').then(r => r.json());
+      allUsers = d.users || [];
+      document.getElementById('badge-users').textContent = allUsers.length;
+      renderUsersTable(allUsers);
+    } catch(e) {}
+  }
+
+  function renderUsersTable(list) {
+    const tbody = document.getElementById('users-tbody');
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Niciun utilizator.</td></tr>`; return; }
+    tbody.innerHTML = list.map(u => `<tr>
+      <td><div class="td-name">${u.first_name} ${u.last_name}</div></td>
+      <td>${u.email}</td>
+      <td>${u.phone||'—'}</td>
+      <td>${u.rez_count||0}</td>
+      <td>${formatDate(u.created_at)}</td>
+      <td><button class="btn-xs btn-xs-red" onclick="openDelUser(${u.id})">Șterge</button></td>
+    </tr>`).join('');
+  }
+
+  // ── REVIEWS ──
+  async function loadReviews() {
+    try {
+      const d = await fetch('api/admin_get_reviews.php').then(r => r.json());
+      allReviews = d.reviews || [];
+      renderReviewsTable(allReviews);
+    } catch(e) {}
+  }
+
+  function renderReviewsTable(list) {
+    const tbody = document.getElementById('reviews-tbody');
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Nicio recenzie.</td></tr>`; return; }
+    tbody.innerHTML = list.map(r => {
+      const starsHtml = [1,2,3,4,5].map(s => `<span class="star${s>r.rating?' empty':''}">★</span>`).join('');
+      return `<tr>
+        <td>${r.hotel_name||'—'}</td>
+        <td>${r.first_name} ${r.last_name}</td>
+        <td><div class="stars-sm">${starsHtml}</div></td>
+        <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.comment||'—'}</td>
+        <td>${formatDate(r.created_at)}</td>
+        <td><button class="btn-xs btn-xs-red" onclick="deleteReview(${r.id})">Șterge</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── BLOCKED DATES ──
+  async function loadBlocked() {
+    try {
+      const d = await fetch('api/admin_get_blocked.php').then(r => r.json());
+      allBlocked = d.blocked || [];
+      renderBlockedTable(allBlocked);
+    } catch(e) {}
+  }
+
+  function renderBlockedTable(list) {
+    const tbody = document.getElementById('blocked-tbody');
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="4" class="table-empty">Nicio dată blocată.</td></tr>`; return; }
+    tbody.innerHTML = list.map(b => `<tr>
+      <td>${b.hotel_name||'—'}</td>
+      <td>${b.blocked_date}</td>
+      <td>${b.reason||'—'}</td>
+      <td><button class="btn-xs btn-xs-red" onclick="unblock(${b.id})">Deblochează</button></td>
+    </tr>`).join('');
+  }
+
+  function populateHotelSelect(hotels) {
+    const sel = document.getElementById('avail-hotel');
+    sel.innerHTML = '<option value="">— Selectează hotel —</option>' +
+      hotels.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+  }
+
+  async function addBlock() {
+    const hotel = document.getElementById('avail-hotel').value;
+    const date  = document.getElementById('avail-date').value;
+    const reason= document.getElementById('avail-reason').value.trim();
+    if (!hotel || !date) { showAvailAlert('Selectează hotelul și data.'); return; }
+
+    const body = new FormData();
+    body.append('hotel_id', hotel); body.append('date', date); body.append('reason', reason);
+
+    try {
+      const r = await fetch('api/add_block.php', { method: 'POST', body });
+      const d = await r.json();
+      if (d.success) { showToast('Dată blocată!', '✓'); loadBlocked(); }
+      else showAvailAlert(d.message || 'Eroare.');
+    } catch(e) { showAvailAlert('Eroare de conexiune.'); }
+  }
+
+  async function unblock(id) {
+    const body = new FormData(); body.append('id', id);
+    try {
+      const r = await fetch('api/remove_block.php', { method: 'POST', body });
+      const d = await r.json();
+      if (d.success) { showToast('Dată deblocată!', '✓'); loadBlocked(); }
+    } catch(e) {}
+  }
+
+  function showAvailAlert(msg) {
+    const el = document.getElementById('avail-alert');
+    document.getElementById('avail-alert-text').textContent = msg;
+    el.className = 'alert visible error';
+    setTimeout(() => el.classList.remove('visible'), 4000);
+  }
+
+  // ── MODAL ACTIONS ──
+  function openDelHotel(id) { delHotelTarget = id; openModal('del-hotel-modal'); }
+  async function doDeleteHotel() {
+    if (!delHotelTarget) return;
+    const body = new FormData(); body.append('id', delHotelTarget);
+    const r = await fetch('api/delete_hotel.php', { method: 'POST', body });
+    const d = await r.json();
+    closeModal('del-hotel-modal');
+    if (d.success) { showToast('Hotel șters!', '✓'); loadHotels(); }
+    else showToast(d.message || 'Eroare.', '⚠');
+  }
+
+  function openStatus(id, code, current) {
+    statusTarget = id;
+    document.getElementById('status-modal-code').textContent = code;
+    document.getElementById('status-select').value = current;
+    openModal('status-modal');
+  }
+  async function doStatusChange() {
+    if (!statusTarget) return;
+    const status = document.getElementById('status-select').value;
+    const body = new FormData(); body.append('id', statusTarget); body.append('status', status);
+    const r = await fetch('api/update_rez_status.php', { method: 'POST', body });
+    const d = await r.json();
+    closeModal('status-modal');
+    if (d.success) { showToast('Status actualizat!', '✓'); loadRezervari(); }
+    else showToast(d.message || 'Eroare.', '⚠');
+  }
+
+  function openDelRez(id) { delRezTarget = id; openModal('del-rez-modal'); }
+  async function doDeleteRez() {
+    if (!delRezTarget) return;
+    const body = new FormData(); body.append('id', delRezTarget);
+    const r = await fetch('api/delete_rez.php', { method: 'POST', body });
+    const d = await r.json();
+    closeModal('del-rez-modal');
+    if (d.success) { showToast('Rezervare ștearsă!', '✓'); loadRezervari(); }
+  }
+
+  function openDelUser(id) { delUserTarget = id; openModal('del-user-modal'); }
+  async function doDeleteUser() {
+    if (!delUserTarget) return;
+    const body = new FormData(); body.append('id', delUserTarget);
+    const r = await fetch('api/delete_user.php', { method: 'POST', body });
+    const d = await r.json();
+    closeModal('del-user-modal');
+    if (d.success) { showToast('Utilizator șters!', '✓'); loadUsers(); }
+  }
+
+  async function deleteReview(id) {
+    const body = new FormData(); body.append('id', id);
+    const r = await fetch('api/delete_review.php', { method: 'POST', body });
+    const d = await r.json();
+    if (d.success) { showToast('Recenzie ștearsă!', '✓'); loadReviews(); }
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+  // ── TABLE FILTER ──
+  function filterTable(tbodyId, query, cols) {
+    const q = query.toLowerCase();
+    document.querySelectorAll(`#${tbodyId} tr`).forEach(row => {
+      const text = cols.map(c => row.cells[c]?.textContent || '').join(' ').toLowerCase();
+      row.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+
+  // ── TAB SWITCH ──
+  function showTab(tab, el) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.side-item').forEach(i => i.classList.remove('active'));
+    document.getElementById(`panel-${tab}`).classList.add('active');
+    if (el) el.classList.add('active');
+  }
+
+  // ── HELPERS ──
+  function formatDate(str) {
+    if (!str) return '—';
+    return new Date(str).toLocaleDateString('ro-RO', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function timeAgo(str) {
+    if (!str) return '';
+    const diff = Math.floor((Date.now() - new Date(str)) / 1000);
+    if (diff < 60) return 'Acum';
+    if (diff < 3600) return `${Math.floor(diff/60)}m`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+    return `${Math.floor(diff/86400)}z`;
+  }
+  function showToast(msg, icon = '✓') {
+    document.getElementById('toast-text').textContent = msg;
+    document.getElementById('toast-icon').textContent = icon;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  init();
+</script>
+</body>
+</html>
