@@ -1,4 +1,4 @@
-<?php session_start(); header('Content-Type: application/json'); require_once 'db.php';
+<?php session_start(); header('Content-Type: application/json'); require_once '../db.php';
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') { http_response_code(403); exit; }
 $id     = intval($_POST['id']     ?? 0);
 $status = trim($_POST['status']   ?? '');

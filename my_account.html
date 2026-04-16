@@ -512,7 +512,7 @@
   // ── LOAD RESERVATIONS ──
   async function loadReservations() {
     try {
-      const data = await fetch('api/Rezervari/get_my_rezervari.php').then(r => r.json());
+      const data = await fetch('api/Rezervari/get_my_reservation.php').then(r => r.json());
       allRez = data.rezervari || [];
       renderStats(data);
       renderRezList(allRez, 'recent-rez-list', 3);

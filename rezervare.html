@@ -629,56 +629,80 @@
 
   // ── INIT ──
   async function init() {
-    if (!hotelId) { window.location.href = 'index.html'; return; }
+  const urlParams = new URLSearchParams(window.location.search);
+  const hotelId = urlParams.get('hotel_id'); // verifică dacă variabila e hotel_id sau id în URL
 
-    [hotelData, session] = await Promise.all([
-      fetch(`api/Hotels/get_hotel.php?id=${hotelId}`).then(r => r.json()).catch(() => null),
+  if (!hotelId) { 
+    window.location.href = 'index.html'; 
+    return; 
+  }
+
+  try {
+    const results = await Promise.all([
+      fetch(`api/Hotels/get_hotels.php?id=${hotelId}`).then(r => r.json()).catch(() => null),
       fetch('api/Auth/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
     ]);
 
-    if (!hotelData || hotelData.error) { window.location.href = 'index.html'; return; }
+    // Din poza ta, hotelData e un ARRAY, deci luăm elementul 0
+    const rawData = results[0];
+    hotelData = Array.isArray(rawData) ? rawData[0] : rawData;
+    session = results[1];
 
+    console.log("Hotel selectat:", hotelData);
+
+    if (!hotelData || hotelData.error) { 
+      alert("Hotelul nu a fost găsit!");
+      window.location.href = 'index.html'; 
+      return; 
+    }
+
+    // APELEZI FUNCȚIILE DOAR DACĂ EXISTĂ
     renderHotelCard();
-    prefillDates();
+    // prefillDates();
     prefillUser();
-    initRoomPrices();
+    
+    if (typeof initRoomPrices === "function") initRoomPrices();
+
     document.getElementById('back-link').href = `detalii_hotel.html?id=${hotelId}`;
     document.getElementById('page-loader').classList.add('hidden');
-  }
 
-  function renderHotelCard() {
-    document.getElementById('hc-name').textContent     = hotelData.name;
-    document.getElementById('hc-location').textContent = hotelData.location || 'România';
-    const img = hotelData.images && hotelData.images.length ? hotelData.images[0] : null;
-    if (img) document.getElementById('hc-img').innerHTML = `<img src="${img}" alt="${hotelData.name}" onerror="this.parentElement.textContent='🏨'">`;
+  } catch (err) {
+    console.error("Eroare critică la inițializare:", err);
   }
+}
 
-  function prefillDates() {
-    const ci = params.get('checkin');
-    const co = params.get('checkout');
-    const g  = params.get('guests') || '2';
-    if (ci) document.getElementById('checkin').value  = ci;
-    if (co) document.getElementById('checkout').value = co;
-    document.getElementById('guests').value = g;
-    updateSidebar();
-  }
+// ASIGURĂ-TE CĂ ACEASTĂ FUNCȚIE ESTE SCRISĂ EXACT AȘA
+function renderHotelCard() {
+  const nameEl = document.getElementById('hc-name');
+  if (nameEl) nameEl.textContent = hotelData.name;
+  
+  const locEl = document.getElementById('hc-location');
+  if (locEl) locEl.textContent = hotelData.city || hotelData.location || 'România';
+  
+  // Dacă ai prețul în card
+  const priceEl = document.getElementById('hc-price');
+  if (priceEl) priceEl.textContent = hotelData.price + " RON";
+}
 
-  function prefillUser() {
-    if (session.logged_in) {
-      // Pre-fill from session
-      const name = (session.name || '').split(' ');
-      if (name[0]) document.getElementById('first-name').value = name[0];
-      if (name[1]) document.getElementById('last-name').value  = name.slice(1).join(' ');
-      document.getElementById('email').value = session.email || '';
-    } else {
-      // Show guest notice
-      document.getElementById('guest-notice-wrap').innerHTML = `
+
+function prefillUser() {
+  // Verificăm dacă session există ca să nu mai dea eroarea aia cu "undefined"
+  if (session && session.logged_in) {
+    const nameParts = (session.name || '').split(' ');
+    if (nameParts[0]) document.getElementById('first-name').value = nameParts[0];
+    if (nameParts.length > 1) document.getElementById('last-name').value = nameParts.slice(1).join(' ');
+    document.getElementById('email').value = session.email || '';
+  } else {
+    const noticeWrap = document.getElementById('guest-notice-wrap');
+    if (noticeWrap) {
+      noticeWrap.innerHTML = `
         <div class="guest-notice">
           <div class="gn-icon">✦</div>
           <div class="gn-text">Rezervi ca oaspete. <a href="login.html">Autentifică-te</a> sau <a href="register.html">creează un cont</a> pentru a vedea rezervarea ulterior în contul tău.</div>
         </div>`;
     }
   }
+}
 
   function initRoomPrices() {
     const base = parseFloat(hotelData.price) || 0;

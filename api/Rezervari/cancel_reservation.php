@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once 'db.php';
+require_once '../db.php';
 
 if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success'=>false,'message'=>'Neautorizat.']); exit;

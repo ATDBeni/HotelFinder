@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once 'db.php';
+require_once '../db.php';
 
 $hotel_id = intval($_GET['hotel_id'] ?? 0);
 if (!$hotel_id) { echo json_encode(['blocked' => []]); exit; }
