@@ -693,7 +693,7 @@
     if (!hotelId) { window.location.href = 'index.html'; return; }
 
     [session] = await Promise.all([
-      fetch('api/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
+      fetch('api/Auth/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
     ]);
 
     updateNav();
@@ -715,15 +715,15 @@
     const el = document.getElementById('nav-actions');
     if (session.logged_in) {
       el.innerHTML = session.role === 'admin'
-        ? `<a href="admin_dashboard.html" class="btn-ghost">Dashboard</a><a href="api/logout.php" class="btn-gold">Deconectare</a>`
-        : `<a href="my_account.html" class="btn-ghost">Contul meu</a><a href="api/logout.php" class="btn-gold">Deconectare</a>`;
+        ? `<a href="admin_dashboard.html" class="btn-ghost">Dashboard</a><a href="api/Auth/logout.php" class="btn-gold">Deconectare</a>`
+        : `<a href="my_account.html" class="btn-ghost">Contul meu</a><a href="api//Authlogout.php" class="btn-gold">Deconectare</a>`;
     }
   }
 
   // ── LOAD HOTEL ──
   async function loadHotel() {
     try {
-      const r    = await fetch(`api/get_hotel.php?id=${hotelId}`);
+      const r    = await fetch(`api/Hotels/get_hotel.php?id=${hotelId}`);
       const data = await r.json();
       if (data.error) { window.location.href = 'index.html'; return; }
       hotelData = data;
@@ -856,7 +856,7 @@
   // ── CALENDAR ──
   async function loadBlocked() {
     try {
-      const r    = await fetch(`api/get_availability.php?hotel_id=${hotelId}`);
+      const r    = await fetch(`api/Disponibilitate/get_availability.php?hotel_id=${hotelId}`);
       const data = await r.json();
       blockedDates = data.blocked || [];
     } catch(e) { blockedDates = []; }
@@ -976,7 +976,7 @@
   // ── REVIEWS ──
   async function loadReviews() {
     try {
-      const r    = await fetch(`api/get_reviews.php?hotel_id=${hotelId}`);
+      const r    = await fetch(`api/Reviews/get_reviews.php?hotel_id=${hotelId}`);
       const data = await r.json();
       renderReviews(data);
     } catch(e) {
@@ -1074,7 +1074,7 @@
     body.append('comment',  text);
 
     try {
-      const r    = await fetch('api/add_review.php', { method: 'POST', body });
+      const r    = await fetch('api/Reviews/add_review.php', { method: 'POST', body });
       const data = await r.json();
       if (data.success) {
         document.getElementById('add-review-section').style.display = 'none';

@@ -421,7 +421,7 @@
     formData.append('role', currentRole);
 
     try {
-      const r = await fetch('api/login.php', { method: 'POST', body: formData });
+      const r = await fetch('api/Auth/login.php', { method: 'POST', body: formData });
       const data = await r.json();
 
       if (data.success) {
@@ -448,7 +448,7 @@
   // redirect if already logged in
   (async () => {
     try {
-      const r = await fetch('api/check_session.php');
+      const r = await fetch('api/Auth/check_session.php');
       const d = await r.json();
       if (d.logged_in) {
         window.location.href = d.role === 'admin' ? 'admin_dashboard.html' : 'index.html';

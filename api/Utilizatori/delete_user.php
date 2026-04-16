@@ -17,11 +17,21 @@ if (!$id) {
 }
 
 try {
-    // Șterge hotelul — reviews și availability se șterg automat prin FK CASCADE
-    // dacă nu ai CASCADE setat, le ștergem manual
-    $pdo->prepare('DELETE FROM reviews      WHERE hotel_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM availability WHERE hotel_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM hotels       WHERE id = ?')->execute([$id]);
+    // Protecție: nu poți șterge alt admin
+    $check = $pdo->prepare('SELECT role FROM users WHERE id = ?');
+    $check->execute([$id]);
+    $user = $check->fetch();
+
+    if (!$user) {
+        echo json_encode(['success' => false, 'message' => 'Utilizatorul nu există.']);
+        exit;
+    }
+    if ($user['role'] === 'admin') {
+        echo json_encode(['success' => false, 'message' => 'Nu poți șterge un cont de administrator.']);
+        exit;
+    }
+
+    $pdo->prepare('DELETE FROM users WHERE id = ? AND role = "client"')->execute([$id]);
 
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {

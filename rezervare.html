@@ -632,8 +632,8 @@
     if (!hotelId) { window.location.href = 'index.html'; return; }
 
     [hotelData, session] = await Promise.all([
-      fetch(`api/get_hotel.php?id=${hotelId}`).then(r => r.json()).catch(() => null),
-      fetch('api/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
+      fetch(`api/Hotels/get_hotel.php?id=${hotelId}`).then(r => r.json()).catch(() => null),
+      fetch('api/Auth/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
     ]);
 
     if (!hotelData || hotelData.error) { window.location.href = 'index.html'; return; }
@@ -849,7 +849,7 @@
     body.append('nights',      nights);
 
     try {
-      const r    = await fetch('api/create_rezervare.php', { method: 'POST', body });
+      const r    = await fetch('api/Rezervari/create_rezervare.php', { method: 'POST', body });
       const data = await r.json();
 
       if (data.success) {

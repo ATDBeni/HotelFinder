@@ -240,7 +240,7 @@
   <div class="nav-right">
     <span class="nav-admin">Conectat ca <span id="nav-name">Admin</span></span>
     <a href="index.html" class="btn-ghost">Site public</a>
-    <a href="api/logout.php" class="btn-gold">Deconectare</a>
+    <a href="api//auth/logout.php" class="btn-gold">Deconectare</a>
   </div>
 </nav>
 
@@ -515,7 +515,7 @@
   // ── INIT ──
   async function init() {
     try {
-      const s = await fetch('api/check_session.php').then(r => r.json());
+      const s = await fetch('api/Auth/check_session.php').then(r => r.json());
       if (!s.logged_in || s.role !== 'admin') { window.location.href = 'login.html'; return; }
       document.getElementById('nav-name').textContent = (s.name || 'Admin').split(' ')[0];
     } catch(e) { window.location.href = 'login.html'; return; }
@@ -527,7 +527,7 @@
   // ── STATS ──
   async function loadStats() {
     try {
-      const d = await fetch('api/admin_stats.php').then(r => r.json());
+      const d = await fetch('api/Stas/admin_stats.php').then(r => r.json());
       document.getElementById('ov-hotels').textContent = d.hotels || 0;
       document.getElementById('ov-rez').textContent    = d.rez    || 0;
       document.getElementById('ov-users').textContent  = d.users  || 0;
@@ -566,7 +566,7 @@
   // ── HOTELS ──
   async function loadHotels() {
     try {
-      const d = await fetch('api/get_hotels.php').then(r => r.json());
+      const d = await fetch('/Hotels/get_hotels.php').then(r => r.json());
       allHotels = d;
       document.getElementById('badge-hotels').textContent = d.length;
       renderHotelsTable(d);
@@ -605,7 +605,7 @@
   // ── REZERVĂRI ──
   async function loadRezervari() {
     try {
-      const d = await fetch('api/admin_get_rez.php').then(r => r.json());
+      const d = await fetch('api/Rezervari/admin_get_rez.php').then(r => r.json());
       allRez = d.rezervari || [];
       document.getElementById('badge-rez').textContent = allRez.length;
       renderRezTable(allRez);
@@ -665,7 +665,7 @@
   // ── USERS ──
   async function loadUsers() {
     try {
-      const d = await fetch('api/admin_get_users.php').then(r => r.json());
+      const d = await fetch('api/Utilizatori/admin_get_users.php').then(r => r.json());
       allUsers = d.users || [];
       document.getElementById('badge-users').textContent = allUsers.length;
       renderUsersTable(allUsers);
@@ -688,7 +688,7 @@
   // ── REVIEWS ──
   async function loadReviews() {
     try {
-      const d = await fetch('api/admin_get_reviews.php').then(r => r.json());
+      const d = await fetch('api/Reviews/admin_get_reviews.php').then(r => r.json());
       allReviews = d.reviews || [];
       renderReviewsTable(allReviews);
     } catch(e) {}
@@ -713,7 +713,7 @@
   // ── BLOCKED DATES ──
   async function loadBlocked() {
     try {
-      const d = await fetch('api/admin_get_blocked.php').then(r => r.json());
+      const d = await fetch('api/Disponibilitate/admin_get_blocked.php').then(r => r.json());
       allBlocked = d.blocked || [];
       renderBlockedTable(allBlocked);
     } catch(e) {}
@@ -746,7 +746,7 @@
     body.append('hotel_id', hotel); body.append('date', date); body.append('reason', reason);
 
     try {
-      const r = await fetch('api/add_block.php', { method: 'POST', body });
+      const r = await fetch('api/Disponibilitate/add_block.php', { method: 'POST', body });
       const d = await r.json();
       if (d.success) { showToast('Dată blocată!', '✓'); loadBlocked(); }
       else showAvailAlert(d.message || 'Eroare.');
@@ -756,7 +756,7 @@
   async function unblock(id) {
     const body = new FormData(); body.append('id', id);
     try {
-      const r = await fetch('api/remove_block.php', { method: 'POST', body });
+      const r = await fetch('api/Disponibilitate/remove_block.php', { method: 'POST', body });
       const d = await r.json();
       if (d.success) { showToast('Dată deblocată!', '✓'); loadBlocked(); }
     } catch(e) {}
@@ -774,7 +774,7 @@
   async function doDeleteHotel() {
     if (!delHotelTarget) return;
     const body = new FormData(); body.append('id', delHotelTarget);
-    const r = await fetch('api/delete_hotel.php', { method: 'POST', body });
+    const r = await fetch('api/Hotels/delete_hotel.php', { method: 'POST', body });
     const d = await r.json();
     closeModal('del-hotel-modal');
     if (d.success) { showToast('Hotel șters!', '✓'); loadHotels(); }
@@ -791,7 +791,7 @@
     if (!statusTarget) return;
     const status = document.getElementById('status-select').value;
     const body = new FormData(); body.append('id', statusTarget); body.append('status', status);
-    const r = await fetch('api/update_rez_status.php', { method: 'POST', body });
+    const r = await fetch('api/Rezervari/update_rez_status.php', { method: 'POST', body });
     const d = await r.json();
     closeModal('status-modal');
     if (d.success) { showToast('Status actualizat!', '✓'); loadRezervari(); }

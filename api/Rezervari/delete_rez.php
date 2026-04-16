@@ -17,12 +17,7 @@ if (!$id) {
 }
 
 try {
-    // Șterge hotelul — reviews și availability se șterg automat prin FK CASCADE
-    // dacă nu ai CASCADE setat, le ștergem manual
-    $pdo->prepare('DELETE FROM reviews      WHERE hotel_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM availability WHERE hotel_id = ?')->execute([$id]);
-    $pdo->prepare('DELETE FROM hotels       WHERE id = ?')->execute([$id]);
-
+    $pdo->prepare('DELETE FROM rezervari WHERE id = ?')->execute([$id]);
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Eroare server: ' . $e->getMessage()]);

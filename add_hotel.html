@@ -315,7 +315,7 @@
   async function init() {
     // Auth check
     try {
-      const s = await fetch('api/check_session.php').then(r => r.json());
+      const s = await fetch('api/auth/check_session.php').then(r => r.json());
       if (!s.logged_in || s.role !== 'admin') { window.location.href = 'login.html'; return; }
     } catch(e) { window.location.href = 'login.html'; return; }
 
@@ -353,7 +353,7 @@
   // ── LOAD HOTEL DATA FOR EDIT ──
   async function loadHotelData() {
     try {
-      const d = await fetch(`api/get_hotel.php?id=${editId}`).then(r => r.json());
+      const d = await fetch(`api/Hotels/get_hotels.php?id=${editId}`).then(r => r.json());
       if (d.error) { window.location.href = 'admin_dashboard.html'; return; }
 
       document.getElementById('name').value          = d.name || '';
@@ -462,7 +462,7 @@
     if (editId) body.append('id', editId);
 
     try {
-      const url = editId ? 'api/update_hotel.php' : 'api/add_hotel.php';
+      const url = editId ? 'api/Hotels/update_hotel.php' : 'api/Hotels/add_hotel.php';
       const r   = await fetch(url, { method: 'POST', body });
       const d   = await r.json();
 

@@ -601,7 +601,7 @@
     body.append('password', document.getElementById('password').value);
 
     try {
-      const r = await fetch('api/register.php', { method: 'POST', body });
+      const r = await fetch('api/Auth/register.php', { method: 'POST', body });
       const data = await r.json();
       if (data.success) {
         document.getElementById('step-3').classList.remove('active');
