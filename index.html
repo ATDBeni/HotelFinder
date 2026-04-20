@@ -1,1546 +1,954 @@
 <!DOCTYPE html>
 <html lang="ro">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HotelFinder — Experiențe de Neuitat</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --gold: #C9A84C;
-            --gold-light: #E8C97A;
-            --gold-dim: rgba(201, 168, 76, 0.18);
-            --gold-line: rgba(201, 168, 76, 0.28);
-            --black: #080808;
-            --dark: #0F0F0F;
-            --dark2: #161616;
-            --dark3: #1E1E1E;
-            --dark4: #2A2A2A;
-            --text: #EDE8DE;
-            --text-muted: #8A7D65;
-            --text-faint: #4A4035;
-            --serif: 'Cormorant Garamond', Georgia, serif;
-            --sans: 'Montserrat', sans-serif;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: var(--dark);
-            color: var(--text);
-            font-family: var(--sans);
-            font-weight: 300;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ── SCROLLBAR ── */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--black);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--gold-line);
-            border-radius: 2px;
-        }
-
-        /* ── NAV ── */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 3rem;
-            background: rgba(8, 8, 8, 0.92);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--gold-line);
-            transition: background 0.4s;
-        }
-
-        .nav-logo {
-            font-family: var(--serif);
-            font-size: 24px;
-            font-weight: 400;
-            letter-spacing: 0.06em;
-            color: var(--text);
-            text-decoration: none;
-        }
-
-        .nav-logo span {
-            color: var(--gold);
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 36px;
-        }
-
-        .nav-links a {
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--gold);
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .btn-ghost {
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--gold);
-            text-decoration: none;
-            padding: 9px 22px;
-            border: 1px solid var(--gold-line);
-            border-radius: 1px;
-            transition: all 0.25s;
-            background: transparent;
-            cursor: pointer;
-        }
-
-        .btn-ghost:hover {
-            background: var(--gold-dim);
-            border-color: var(--gold);
-        }
-
-        .btn-gold {
-            font-family: var(--sans);
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--black);
-            text-decoration: none;
-            padding: 10px 24px;
-            background: var(--gold);
-            border: 1px solid var(--gold);
-            border-radius: 1px;
-            transition: all 0.25s;
-            cursor: pointer;
-        }
-
-        .btn-gold:hover {
-            background: var(--gold-light);
-            border-color: var(--gold-light);
-        }
-
-        /* ── HERO ── */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            background:
-                radial-gradient(ellipse 60% 50% at 70% 50%, rgba(201, 168, 76, 0.07) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 60% at 20% 80%, rgba(201, 168, 76, 0.04) 0%, transparent 60%);
-        }
-
-        .hero-grid {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            opacity: 0.035;
-            background-image:
-                linear-gradient(var(--gold) 1px, transparent 1px),
-                linear-gradient(90deg, var(--gold) 1px, transparent 1px);
-            background-size: 80px 80px;
-        }
-
-        .hero-line {
-            position: absolute;
-            left: 3rem;
-            top: 72px;
-            bottom: 0;
-            width: 1px;
-            background: linear-gradient(to bottom, var(--gold-line), transparent);
-            z-index: 1;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 780px;
-            padding-top: 72px;
-            animation: fadeUp 1s ease both;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(32px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero-label {
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .hero-label::before {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 1px;
-            background: var(--gold-line);
-        }
-
-        .hero-title {
-            font-family: var(--serif);
-            font-size: clamp(52px, 7vw, 96px);
-            font-weight: 300;
-            line-height: 1.05;
-            color: var(--text);
-            margin-bottom: 28px;
-        }
-
-        .hero-title em {
-            font-style: italic;
-            color: var(--gold);
-        }
-
-        .hero-sub {
-            font-size: 13px;
-            font-weight: 300;
-            line-height: 1.9;
-            color: var(--text-muted);
-            max-width: 460px;
-            margin-bottom: 48px;
-        }
-
-        /* ── SEARCH BOX ── */
-        .search-box {
-            background: rgba(22, 22, 22, 0.9);
-            border: 1px solid var(--gold-line);
-            border-radius: 2px;
-            display: flex;
-            align-items: stretch;
-            max-width: 720px;
-            overflow: hidden;
-            animation: fadeUp 1s ease 0.2s both;
-        }
-
-        .search-field-wrap {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 14px 20px;
-            border-right: 1px solid var(--gold-line);
-        }
-
-        .search-field-wrap:last-of-type {
-            border-right: none;
-        }
-
-        .field-label {
-            font-size: 8px;
-            font-weight: 600;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 4px;
-        }
-
-        .search-field-wrap input,
-        .search-field-wrap select {
-            background: transparent;
-            border: none;
-            outline: none;
-            font-family: var(--sans);
-            font-size: 12px;
-            font-weight: 300;
-            color: var(--text);
-            width: 100%;
-        }
-
-        .search-field-wrap input::placeholder {
-            color: var(--text-faint);
-        }
-
-        .search-field-wrap select option {
-            background: var(--dark2);
-            color: var(--text);
-        }
-
-        .search-btn {
-            background: var(--gold);
-            border: none;
-            cursor: pointer;
-            padding: 0 28px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            transition: background 0.2s;
-            min-width: 90px;
-        }
-
-        .search-btn:hover {
-            background: var(--gold-light);
-        }
-
-        .search-btn-icon {
-            font-size: 16px;
-            color: var(--black);
-        }
-
-        .search-btn-text {
-            font-size: 8px;
-            font-weight: 600;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--black);
-        }
-
-        /* hero stats */
-        .hero-stats {
-            position: absolute;
-            right: 3rem;
-            bottom: 4rem;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-            animation: fadeUp 1s ease 0.35s both;
-        }
-
-        .stat {
-            text-align: right;
-        }
-
-        .stat-num {
-            font-family: var(--serif);
-            font-size: 40px;
-            font-weight: 300;
-            color: var(--gold);
-            line-height: 1;
-        }
-
-        .stat-line {
-            width: 100%;
-            height: 1px;
-            background: var(--gold-line);
-            margin: 6px 0;
-        }
-
-        .stat-label {
-            font-size: 9px;
-            font-weight: 500;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-faint);
-        }
-
-        .hero-scroll {
-            position: absolute;
-            bottom: 2.5rem;
-            left: 3rem;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 9px;
-            font-weight: 500;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-faint);
-        }
-
-        .scroll-line {
-            width: 48px;
-            height: 1px;
-            background: var(--gold-line);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .scroll-line::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--gold);
-            animation: scrollAnim 2s ease-in-out infinite;
-        }
-
-        @keyframes scrollAnim {
-            0% {
-                left: -100%;
-            }
-
-            50% {
-                left: 0%;
-            }
-
-            100% {
-                left: 100%;
-            }
-        }
-
-        /* ── FILTERS STRIP ── */
-        .filters-strip {
-            background: var(--dark2);
-            border-top: 1px solid var(--gold-line);
-            border-bottom: 1px solid var(--gold-line);
-            padding: 0 3rem;
-            display: flex;
-            align-items: center;
-            gap: 0;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .filters-strip::-webkit-scrollbar {
-            display: none;
-        }
-
-        .filter-tab {
-            padding: 16px 24px;
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            cursor: pointer;
-            white-space: nowrap;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .filter-tab:hover {
-            color: var(--text);
-        }
-
-        .filter-tab.active {
-            color: var(--gold);
-            border-bottom-color: var(--gold);
-        }
-
-        .filters-divider {
-            width: 1px;
-            height: 20px;
-            background: var(--gold-line);
-            margin: 0 8px;
-            flex-shrink: 0;
-        }
-
-        .price-filter {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 0 0 24px;
-            border-left: 1px solid var(--gold-line);
-        }
-
-        .price-filter label {
-            font-size: 9px;
-            font-weight: 500;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--text-faint);
-        }
-
-        .price-filter select {
-            background: transparent;
-            border: none;
-            outline: none;
-            font-family: var(--sans);
-            font-size: 10px;
-            font-weight: 400;
-            color: var(--gold);
-            cursor: pointer;
-        }
-
-        .price-filter select option {
-            background: var(--dark2);
-        }
-
-        /* ── SECTION ── */
-        .section {
-            padding: 5rem 3rem;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 3rem;
-        }
-
-        .section-eyebrow {
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 8px;
-        }
-
-        .section-title {
-            font-family: var(--serif);
-            font-size: 38px;
-            font-weight: 300;
-            color: var(--text);
-            line-height: 1.1;
-        }
-
-        .section-title em {
-            font-style: italic;
-            color: var(--gold);
-        }
-
-        .section-link {
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: color 0.2s;
-        }
-
-        .section-link:hover {
-            color: var(--gold);
-        }
-
-        .section-link::after {
-            content: '→';
-            font-size: 14px;
-        }
-
-        /* ── HOTEL GRID ── */
-        .hotels-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 2px;
-        }
-
-        .hotel-card {
-            background: var(--dark2);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            transition: border-color 0.3s;
-            animation: fadeUp 0.6s ease both;
-        }
-
-        .hotel-card:hover {
-            border-color: var(--gold-line);
-        }
-
-        .hotel-card:hover .card-overlay {
-            opacity: 1;
-        }
-
-        .hotel-card:hover .card-img-inner {
-            transform: scale(1.04);
-        }
-
-        .card-img {
-            height: 220px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .card-img-inner {
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.6s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 64px;
-            opacity: 0.3;
-        }
-
-        .card-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(8, 8, 8, 0.7) 0%, transparent 50%);
-            opacity: 0.4;
-            transition: opacity 0.3s;
-        }
-
-        .card-badges {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .badge {
-            font-size: 8px;
-            font-weight: 600;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 1px;
-        }
-
-        .badge-gold {
-            background: var(--gold);
-            color: var(--black);
-        }
-
-        .badge-dark {
-            background: rgba(8, 8, 8, 0.85);
-            color: var(--gold);
-            border: 1px solid var(--gold-line);
-        }
-
-        .card-stars {
-            position: absolute;
-            bottom: 14px;
-            right: 14px;
-            display: flex;
-            gap: 2px;
-        }
-
-        .star {
-            color: var(--gold);
-            font-size: 11px;
-        }
-
-        .star.empty {
-            color: var(--text-faint);
-        }
-
-        .card-body {
-            padding: 22px 22px 20px;
-        }
-
-        .card-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .card-location {
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--text-faint);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .card-location::before {
-            content: '';
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: var(--gold);
-            flex-shrink: 0;
-        }
-
-        .card-rating {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .rating-val {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--gold);
-        }
-
-        .rating-count {
-            font-size: 9px;
-            color: var(--text-faint);
-        }
-
-        .card-name {
-            font-family: var(--serif);
-            font-size: 22px;
-            font-weight: 400;
-            color: var(--text);
-            margin-bottom: 10px;
-            line-height: 1.2;
-        }
-
-        .card-desc {
-            font-size: 11px;
-            font-weight: 300;
-            line-height: 1.8;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-        }
-
-        .card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 16px;
-        }
-
-        .card-price {}
-
-        .price-from {
-            font-size: 9px;
-            letter-spacing: 0.12em;
-            color: var(--text-faint);
-        }
-
-        .price-amount {
-            font-family: var(--serif);
-            font-size: 26px;
-            font-weight: 300;
-            color: var(--gold);
-        }
-
-        .price-night {
-            font-size: 9px;
-            color: var(--text-faint);
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 1px;
-            background: var(--dark3);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            color: var(--text-muted);
-        }
-
-        .btn-icon:hover {
-            border-color: var(--gold-line);
-            color: var(--gold);
-        }
-
-        .btn-reserve {
-            font-family: var(--sans);
-            font-size: 9px;
-            font-weight: 500;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--black);
-            background: var(--gold);
-            border: 1px solid var(--gold);
-            border-radius: 1px;
-            padding: 0 18px;
-            height: 36px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .btn-reserve:hover {
-            background: var(--gold-light);
-            border-color: var(--gold-light);
-        }
-
-        /* ── FEATURED CARD (large) ── */
-        .hotel-card.featured {
-            grid-column: span 2;
-        }
-
-        .hotel-card.featured .card-img {
-            height: 320px;
-        }
-
-        .hotel-card.featured .card-name {
-            font-size: 30px;
-        }
-
-        /* ── AMENITIES STRIP ── */
-        .amenities-strip {
-            border-top: 1px solid var(--gold-line);
-            border-bottom: 1px solid var(--gold-line);
-            display: flex;
-            background: var(--dark2);
-        }
-
-        .amenity {
-            flex: 1;
-            padding: 2.5rem 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            text-align: center;
-            border-right: 1px solid var(--gold-line);
-        }
-
-        .amenity:last-child {
-            border-right: none;
-        }
-
-        .amenity-icon {
-            width: 44px;
-            height: 44px;
-            border: 1px solid var(--gold-line);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .amenity-title {
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.08em;
-            color: var(--text);
-        }
-
-        .amenity-sub {
-            font-size: 10px;
-            font-weight: 300;
-            line-height: 1.6;
-            color: var(--text-faint);
-        }
-
-        /* ── DESTINATIONS ── */
-        .destinations-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 2px;
-        }
-
-        .dest-card {
-            position: relative;
-            height: 280px;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .dest-card:first-child {
-            grid-row: span 2;
-            height: auto;
-            min-height: 560px;
-        }
-
-        .dest-bg {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-            opacity: 0.25;
-            transition: transform 0.5s ease;
-        }
-
-        .dest-card:hover .dest-bg {
-            transform: scale(1.06);
-        }
-
-        .dest-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(8, 8, 8, 0.85) 0%, rgba(8, 8, 8, 0.2) 60%, transparent 100%);
-        }
-
-        .dest-content {
-            position: absolute;
-            bottom: 24px;
-            left: 24px;
-            right: 24px;
-        }
-
-        .dest-count {
-            font-size: 9px;
-            font-weight: 500;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 6px;
-        }
-
-        .dest-name {
-            font-family: var(--serif);
-            font-size: 26px;
-            font-weight: 300;
-            color: var(--text);
-            line-height: 1.1;
-        }
-
-        .dest-card:first-child .dest-name {
-            font-size: 40px;
-        }
-
-        /* ── TOAST ── */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 999;
-            background: var(--dark2);
-            border: 1px solid var(--gold-line);
-            border-radius: 2px;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transform: translateX(120%);
-            transition: transform 0.4s ease;
-            min-width: 280px;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast-icon {
-            font-size: 18px;
-            color: var(--gold);
-        }
-
-        .toast-text {
-            font-size: 12px;
-            color: var(--text);
-        }
-
-        .toast-sub {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* ── LOADING ── */
-        .loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px;
-            gap: 20px;
-            grid-column: 1 / -1;
-        }
-
-        .loader-ring {
-            width: 40px;
-            height: 40px;
-            border: 1px solid var(--gold-line);
-            border-top-color: var(--gold);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loader-text {
-            font-size: 9px;
-            font-weight: 500;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--text-faint);
-        }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            padding: 60px;
-            text-align: center;
-        }
-
-        .empty-state-icon {
-            font-size: 40px;
-            opacity: 0.3;
-        }
-
-        .empty-state-text {
-            font-family: var(--serif);
-            font-size: 22px;
-            font-weight: 300;
-            color: var(--text-muted);
-        }
-
-        /* ── FOOTER ── */
-        footer {
-            background: var(--black);
-            border-top: 1px solid var(--gold-line);
-            padding: 4rem 3rem 2rem;
-        }
-
-        .footer-top {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-            margin-bottom: 3rem;
-            padding-bottom: 3rem;
-            border-bottom: 1px solid var(--gold-line);
-        }
-
-        .footer-brand {}
-
-        .footer-logo {
-            font-family: var(--serif);
-            font-size: 28px;
-            font-weight: 300;
-            color: var(--text);
-            margin-bottom: 16px;
-        }
-
-        .footer-logo span {
-            color: var(--gold);
-        }
-
-        .footer-tagline {
-            font-size: 11px;
-            font-weight: 300;
-            line-height: 1.8;
-            color: var(--text-faint);
-            max-width: 240px;
-        }
-
-        .footer-col-title {
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 20px;
-        }
-
-        .footer-links {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .footer-link {
-            font-size: 11px;
-            font-weight: 300;
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer-link:hover {
-            color: var(--gold);
-        }
-
-        .footer-bottom {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .footer-copy {
-            font-size: 10px;
-            color: var(--text-faint);
-            letter-spacing: 0.06em;
-        }
-
-        .footer-copy span {
-            color: var(--gold);
-        }
-
-        .footer-socials {
-            display: flex;
-            gap: 16px;
-        }
-
-        .social-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 1px;
-            border: 1px solid var(--gold-line);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-muted);
-            text-decoration: none;
-        }
-
-        .social-btn:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-        }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 900px) {
-            nav {
-                padding: 0 1.5rem;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .hero {
-                padding: 0 1.5rem;
-            }
-
-            .hero-stats {
-                display: none;
-            }
-
-            .search-box {
-                flex-direction: column;
-            }
-
-            .search-field-wrap {
-                border-right: none;
-                border-bottom: 1px solid var(--gold-line);
-            }
-
-            .section {
-                padding: 3rem 1.5rem;
-            }
-
-            .hotels-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .hotel-card.featured {
-                grid-column: span 1;
-            }
-
-            .destinations-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .dest-card:first-child {
-                grid-row: span 1;
-                min-height: 280px;
-            }
-
-            .footer-top {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelFinder — Experiențe de Neuitat</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold:       #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim:   rgba(201,168,76,0.18);
+    --gold-line:  rgba(201,168,76,0.28);
+    --black:      #080808;
+    --dark:       #0F0F0F;
+    --dark2:      #161616;
+    --dark3:      #1E1E1E;
+    --dark4:      #2A2A2A;
+    --text:       #EDE8DE;
+    --text-muted: #8A7D65;
+    --text-faint: #4A4035;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'Montserrat', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-line); border-radius: 2px; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 72px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 3rem;
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--gold-line);
+    transition: background 0.4s;
+  }
+
+  .nav-logo {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); }
+
+  .nav-links {
+    display: flex; align-items: center; gap: 36px;
+  }
+  .nav-links a {
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  .nav-actions { display: flex; align-items: center; gap: 16px; }
+
+  .btn-ghost {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--gold); text-decoration: none;
+    padding: 9px 22px;
+    border: 1px solid var(--gold-line);
+    border-radius: 1px;
+    transition: all 0.25s;
+    background: transparent;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { background: var(--gold-dim); border-color: var(--gold); }
+
+  .btn-gold {
+    font-family: var(--sans);
+    font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--black); text-decoration: none;
+    padding: 10px 24px;
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 1px;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+  .btn-gold:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 3rem;
+    position: relative; overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 50%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 60%);
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.035;
+    background-image:
+      linear-gradient(var(--gold) 1px, transparent 1px),
+      linear-gradient(90deg, var(--gold) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .hero-line {
+    position: absolute; left: 3rem; top: 72px; bottom: 0; width: 1px;
+    background: linear-gradient(to bottom, var(--gold-line), transparent);
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 780px;
+    padding-top: 72px;
+    animation: fadeUp 1s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .hero-label::before {
+    content: ''; display: block; width: 40px; height: 1px; background: var(--gold-line);
+  }
+
+  .hero-title {
+    font-family: var(--serif);
+    font-size: clamp(52px, 7vw, 96px);
+    font-weight: 300; line-height: 1.05;
+    color: var(--text); margin-bottom: 28px;
+  }
+  .hero-title em { font-style: italic; color: var(--gold); }
+
+  .hero-sub {
+    font-size: 13px; font-weight: 300; line-height: 1.9;
+    color: var(--text-muted); max-width: 460px; margin-bottom: 48px;
+  }
+
+  /* ── SEARCH BOX ── */
+  .search-box {
+    background: rgba(22,22,22,0.9);
+    border: 1px solid var(--gold-line);
+    border-radius: 2px;
+    display: flex; align-items: stretch;
+    max-width: 720px;
+    overflow: hidden;
+    animation: fadeUp 1s ease 0.2s both;
+  }
+
+  .search-field-wrap {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 14px 20px;
+    border-right: 1px solid var(--gold-line);
+  }
+  .search-field-wrap:last-of-type { border-right: none; }
+
+  .field-label {
+    font-size: 8px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 4px;
+  }
+
+  .search-field-wrap input,
+  .search-field-wrap select {
+    background: transparent; border: none; outline: none;
+    font-family: var(--sans); font-size: 12px; font-weight: 300;
+    color: var(--text); width: 100%;
+  }
+  .search-field-wrap input::placeholder { color: var(--text-faint); }
+  .search-field-wrap select option { background: var(--dark2); color: var(--text); }
+
+  .search-btn {
+    background: var(--gold); border: none; cursor: pointer;
+    padding: 0 28px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+    transition: background 0.2s; min-width: 90px;
+  }
+  .search-btn:hover { background: var(--gold-light); }
+  .search-btn-icon { font-size: 16px; color: var(--black); }
+  .search-btn-text {
+    font-size: 8px; font-weight: 600; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--black);
+  }
+
+  /* hero stats */
+  .hero-stats {
+    position: absolute; right: 3rem; bottom: 4rem; z-index: 2;
+    display: flex; flex-direction: column; gap: 32px;
+    animation: fadeUp 1s ease 0.35s both;
+  }
+  .stat { text-align: right; }
+  .stat-num {
+    font-family: var(--serif); font-size: 40px; font-weight: 300;
+    color: var(--gold); line-height: 1;
+  }
+  .stat-line { width: 100%; height: 1px; background: var(--gold-line); margin: 6px 0; }
+  .stat-label {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+
+  .hero-scroll {
+    position: absolute; bottom: 2.5rem; left: 3rem; z-index: 2;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 9px; font-weight: 500; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+  .scroll-line {
+    width: 48px; height: 1px; background: var(--gold-line);
+    position: relative; overflow: hidden;
+  }
+  .scroll-line::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: var(--gold);
+    animation: scrollAnim 2s ease-in-out infinite;
+  }
+  @keyframes scrollAnim {
+    0%   { left: -100%; }
+    50%  { left: 0%; }
+    100% { left: 100%; }
+  }
+
+  /* ── FILTERS STRIP ── */
+  .filters-strip {
+    background: var(--dark2);
+    border-top: 1px solid var(--gold-line);
+    border-bottom: 1px solid var(--gold-line);
+    padding: 0 3rem;
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filters-strip::-webkit-scrollbar { display: none; }
+
+  .filter-tab {
+    padding: 16px 24px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted);
+    cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .filters-divider {
+    width: 1px; height: 20px; background: var(--gold-line);
+    margin: 0 8px; flex-shrink: 0;
+  }
+
+  .price-filter {
+    margin-left: auto; display: flex; align-items: center; gap: 12px;
+    padding: 0 0 0 24px; border-left: 1px solid var(--gold-line);
+  }
+  .price-filter label {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+  .price-filter select {
+    background: transparent; border: none; outline: none;
+    font-family: var(--sans); font-size: 10px; font-weight: 400;
+    color: var(--gold); cursor: pointer;
+  }
+  .price-filter select option { background: var(--dark2); }
+
+  /* ── SECTION ── */
+  .section { padding: 5rem 3rem; }
+
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 3rem;
+  }
+  .section-eyebrow {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--serif); font-size: 38px; font-weight: 300;
+    color: var(--text); line-height: 1.1;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-link {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted);
+    text-decoration: none; display: flex; align-items: center; gap: 8px;
+    transition: color 0.2s;
+  }
+  .section-link:hover { color: var(--gold); }
+  .section-link::after { content: '→'; font-size: 14px; }
+
+  /* ── HOTEL GRID ── */
+  .hotels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .hotel-card {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.3s;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hotel-card:hover { border-color: var(--gold-line); }
+  .hotel-card:hover .card-overlay { opacity: 1; }
+  .hotel-card:hover .card-img-inner { transform: scale(1.04); }
+
+  .card-img {
+    height: 220px; overflow: hidden; position: relative;
+  }
+  .card-img-inner {
+    width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+    transition: transform 0.6s ease;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; opacity: 0.3;
+  }
+  .card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(8,8,8,0.7) 0%, transparent 50%);
+    opacity: 0.4; transition: opacity 0.3s;
+  }
+  .card-badges {
+    position: absolute; top: 14px; left: 14px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 8px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 1px;
+  }
+  .badge-gold { background: var(--gold); color: var(--black); }
+  .badge-dark { background: rgba(8,8,8,0.85); color: var(--gold); border: 1px solid var(--gold-line); }
+  .card-stars {
+    position: absolute; bottom: 14px; right: 14px;
+    display: flex; gap: 2px;
+  }
+  .star { color: var(--gold); font-size: 11px; }
+  .star.empty { color: var(--text-faint); }
+
+  .card-body { padding: 22px 22px 20px; }
+  .card-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-location {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--text-faint);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-location::before {
+    content: ''; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--gold); flex-shrink: 0;
+  }
+  .card-rating { display: flex; align-items: center; gap: 5px; }
+  .rating-val {
+    font-size: 11px; font-weight: 500; color: var(--gold);
+  }
+  .rating-count { font-size: 9px; color: var(--text-faint); }
+
+  .card-name {
+    font-family: var(--serif); font-size: 22px; font-weight: 400;
+    color: var(--text); margin-bottom: 10px; line-height: 1.2;
+  }
+  .card-desc {
+    font-size: 11px; font-weight: 300; line-height: 1.8;
+    color: var(--text-muted); margin-bottom: 20px;
+  }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 16px;
+  }
+  .card-price {}
+  .price-from { font-size: 9px; letter-spacing: 0.12em; color: var(--text-faint); }
+  .price-amount {
+    font-family: var(--serif); font-size: 26px; font-weight: 300;
+    color: var(--gold);
+  }
+  .price-night { font-size: 9px; color: var(--text-faint); }
+
+  .card-actions { display: flex; gap: 8px; }
+  .btn-icon {
+    width: 36px; height: 36px; border-radius: 1px;
+    background: var(--dark3); border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; color: var(--text-muted);
+  }
+  .btn-icon:hover { border-color: var(--gold-line); color: var(--gold); }
+
+  .btn-reserve {
+    font-family: var(--sans); font-size: 9px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--black); background: var(--gold);
+    border: 1px solid var(--gold); border-radius: 1px;
+    padding: 0 18px; height: 36px;
+    cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: flex; align-items: center;
+  }
+  .btn-reserve:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+  /* ── FEATURED CARD (large) ── */
+  .hotel-card.featured {
+    grid-column: span 2;
+  }
+  .hotel-card.featured .card-img { height: 320px; }
+  .hotel-card.featured .card-name { font-size: 30px; }
+
+  /* ── AMENITIES STRIP ── */
+  .amenities-strip {
+    border-top: 1px solid var(--gold-line);
+    border-bottom: 1px solid var(--gold-line);
+    display: flex;
+    background: var(--dark2);
+  }
+  .amenity {
+    flex: 1; padding: 2.5rem 2rem;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px; text-align: center;
+    border-right: 1px solid var(--gold-line);
+  }
+  .amenity:last-child { border-right: none; }
+  .amenity-icon {
+    width: 44px; height: 44px;
+    border: 1px solid var(--gold-line); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .amenity-title {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+    color: var(--text);
+  }
+  .amenity-sub {
+    font-size: 10px; font-weight: 300; line-height: 1.6;
+    color: var(--text-faint);
+  }
+
+  /* ── DESTINATIONS ── */
+  .destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 2px;
+  }
+  .dest-card {
+    position: relative; height: 280px; overflow: hidden; cursor: pointer;
+  }
+  .dest-card:first-child { grid-row: span 2; height: auto; min-height: 560px; }
+  .dest-bg {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px; opacity: 0.25;
+    transition: transform 0.5s ease;
+  }
+  .dest-card:hover .dest-bg { transform: scale(1.06); }
+  .dest-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(8,8,8,0.85) 0%, rgba(8,8,8,0.2) 60%, transparent 100%);
+  }
+  .dest-content {
+    position: absolute; bottom: 24px; left: 24px; right: 24px;
+  }
+  .dest-count {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .dest-name {
+    font-family: var(--serif); font-size: 26px; font-weight: 300;
+    color: var(--text); line-height: 1.1;
+  }
+  .dest-card:first-child .dest-name { font-size: 40px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+    background: var(--dark2); border: 1px solid var(--gold-line);
+    border-radius: 2px; padding: 16px 24px;
+    display: flex; align-items: center; gap: 12px;
+    transform: translateX(120%); transition: transform 0.4s ease;
+    min-width: 280px;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast-icon { font-size: 18px; color: var(--gold); }
+  .toast-text { font-size: 12px; color: var(--text); }
+  .toast-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── LOADING ── */
+  .loader {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px; gap: 20px;
+    grid-column: 1 / -1;
+  }
+  .loader-ring {
+    width: 40px; height: 40px;
+    border: 1px solid var(--gold-line);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    grid-column: 1 / -1;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 16px; padding: 60px; text-align: center;
+  }
+  .empty-state-icon { font-size: 40px; opacity: 0.3; }
+  .empty-state-text {
+    font-family: var(--serif); font-size: 22px; font-weight: 300;
+    color: var(--text-muted);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--black);
+    border-top: 1px solid var(--gold-line);
+    padding: 4rem 3rem 2rem;
+  }
+  .footer-top {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem; margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--gold-line);
+  }
+  .footer-brand {}
+  .footer-logo {
+    font-family: var(--serif); font-size: 28px; font-weight: 300;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .footer-logo span { color: var(--gold); }
+  .footer-tagline {
+    font-size: 11px; font-weight: 300; line-height: 1.8;
+    color: var(--text-faint); max-width: 240px;
+  }
+  .footer-col-title {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .footer-links { display: flex; flex-direction: column; gap: 12px; }
+  .footer-link {
+    font-size: 11px; font-weight: 300;
+    color: var(--text-muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-link:hover { color: var(--gold); }
+  .footer-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-copy {
+    font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em;
+  }
+  .footer-copy span { color: var(--gold); }
+  .footer-socials { display: flex; gap: 16px; }
+  .social-btn {
+    width: 32px; height: 32px; border-radius: 1px;
+    border: 1px solid var(--gold-line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+    color: var(--text-muted); text-decoration: none;
+  }
+  .social-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 0 1.5rem; }
+    .nav-links { display: none; }
+    .hero { padding: 0 1.5rem; }
+    .hero-stats { display: none; }
+    .search-box { flex-direction: column; }
+    .search-field-wrap { border-right: none; border-bottom: 1px solid var(--gold-line); }
+    .section { padding: 3rem 1.5rem; }
+    .hotels-grid { grid-template-columns: 1fr; }
+    .hotel-card.featured { grid-column: span 1; }
+    .destinations-grid { grid-template-columns: 1fr 1fr; }
+    .dest-card:first-child { grid-row: span 1; min-height: 280px; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+  }
+</style>
 </head>
-
 <body>
 
-    <!-- NAV -->
-    <nav>
-        <a href="index.html" class="nav-logo">Hotel<span>Finder</span></a>
-        <div class="nav-links">
-            <a href="#hoteluri">Hoteluri</a>
-            <a href="#destinatii">Destinații</a>
-            <a href="show_hotels.html">Toate ofertele</a>
-        </div>
-        <div class="nav-actions" id="nav-actions">
-            <!-- populated by JS based on session -->
-            <a href="login.html" class="btn-ghost">Autentificare</a>
-            <a href="register.html" class="btn-gold">Cont nou</a>
-        </div>
-    </nav>
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">Hotel<span>Finder</span></a>
+  <div class="nav-links">
+    <a href="#hoteluri">Hoteluri</a>
+    <a href="#destinatii">Destinații</a>
+    <a href="show_hotels.html">Toate ofertele</a>
+  </div>
+  <div class="nav-actions" id="nav-actions">
+    <!-- populated by JS based on session -->
+    <a href="login.html" class="btn-ghost">Autentificare</a>
+    <a href="register.html" class="btn-gold">Cont nou</a>
+  </div>
+</nav>
 
-    <!-- HERO -->
-    <section class="hero">
-        <div class="hero-bg"></div>
-        <div class="hero-grid"></div>
-        <div class="hero-line"></div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-line"></div>
 
-        <div class="hero-content">
-            <div class="hero-label">Experiențe de neuitat</div>
-            <h1 class="hero-title">
-                Găsește<br><em>Hotelul Perfect</em><br>pentru tine
-            </h1>
-            <p class="hero-sub">
-                Alege din colecția noastră de hoteluri premium, verificate și recomandate de călători reali. Rezervă în
-                câteva secunde.
-            </p>
+  <div class="hero-content">
+    <div class="hero-label">Experiențe de neuitat</div>
+    <h1 class="hero-title">
+      Găsește<br><em>Hotelul Perfect</em><br>pentru tine
+    </h1>
+    <p class="hero-sub">
+      Alege din colecția noastră de hoteluri premium, verificate și recomandate de călători reali. Rezervă în câteva secunde.
+    </p>
 
-            <div class="search-box">
-                <div class="search-field-wrap">
-                    <div class="field-label">Destinație</div>
-                    <input type="text" id="search-dest" placeholder="București, Cluj, Mamaia...">
-                </div>
-                <div class="search-field-wrap">
-                    <div class="field-label">Check-in</div>
-                    <input type="date" id="search-checkin">
-                </div>
-                <div class="search-field-wrap">
-                    <div class="field-label">Check-out</div>
-                    <input type="date" id="search-checkout">
-                </div>
-                <div class="search-field-wrap">
-                    <div class="field-label">Oaspeți</div>
-                    <select id="search-guests">
-                        <option>1 adult</option>
-                        <option selected>2 adulți</option>
-                        <option>3 adulți</option>
-                        <option>4+ adulți</option>
-                    </select>
-                </div>
-                <button class="search-btn" onclick="doSearch()">
-                    <span class="search-btn-icon">⌕</span>
-                    <span class="search-btn-text">Caută</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="hero-stats">
-            <div class="stat">
-                <div class="stat-num" id="stat-hotels">—</div>
-                <div class="stat-line"></div>
-                <div class="stat-label">Hoteluri</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">4.8</div>
-                <div class="stat-line"></div>
-                <div class="stat-label">Rating mediu</div>
-            </div>
-            <div class="stat">
-                <div class="stat-num">24/7</div>
-                <div class="stat-line"></div>
-                <div class="stat-label">Suport</div>
-            </div>
-        </div>
-
-        <div class="hero-scroll">
-            <div class="scroll-line"></div>
-            <span>Scroll pentru mai mult</span>
-        </div>
-    </section>
-
-    <!-- FILTERS STRIP -->
-    <div class="filters-strip" id="filters-strip">
-        <div class="filter-tab active" data-filter="all">Toate</div>
-        <div class="filters-divider"></div>
-        <div class="filter-tab" data-filter="5star">5 Stele</div>
-        <div class="filters-divider"></div>
-        <div class="filter-tab" data-filter="4star">4 Stele</div>
-        <div class="filters-divider"></div>
-        <div class="filter-tab" data-filter="spa">Spa & Wellness</div>
-        <div class="filters-divider"></div>
-        <div class="filter-tab" data-filter="business">Business</div>
-        <div class="filters-divider"></div>
-        <div class="filter-tab" data-filter="boutique">Boutique</div>
-        <div class="price-filter">
-            <label>Preț</label>
-            <select id="price-sort" onchange="sortHotels()">
-                <option value="default">Implicit</option>
-                <option value="asc">Crescător</option>
-                <option value="desc">Descrescător</option>
-            </select>
-        </div>
+    <div class="search-box">
+      <div class="search-field-wrap">
+        <div class="field-label">Destinație</div>
+        <input type="text" id="search-dest" placeholder="București, Cluj, Mamaia...">
+      </div>
+      <div class="search-field-wrap">
+        <div class="field-label">Check-in</div>
+        <input type="date" id="search-checkin">
+      </div>
+      <div class="search-field-wrap">
+        <div class="field-label">Check-out</div>
+        <input type="date" id="search-checkout">
+      </div>
+      <div class="search-field-wrap">
+        <div class="field-label">Oaspeți</div>
+        <select id="search-guests">
+          <option>1 adult</option>
+          <option selected>2 adulți</option>
+          <option>3 adulți</option>
+          <option>4+ adulți</option>
+        </select>
+      </div>
+      <button class="search-btn" onclick="doSearch()">
+        <span class="search-btn-icon">⌕</span>
+        <span class="search-btn-text">Caută</span>
+      </button>
     </div>
+  </div>
 
-    <!-- HOTELS SECTION -->
-    <section class="section" id="hoteluri">
-        <div class="section-header">
-            <div>
-                <div class="section-eyebrow">Selecția noastră</div>
-                <h2 class="section-title">Hoteluri <em>Recomandate</em></h2>
-            </div>
-            <a href="show_hotels.html" class="section-link">Vezi toate</a>
-        </div>
-
-        <div class="hotels-grid" id="hotels-container">
-            <div class="loader">
-                <div class="loader-ring"></div>
-                <div class="loader-text">Se încarcă hotelurile</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- AMENITIES STRIP -->
-    <div class="amenities-strip">
-        <div class="amenity">
-            <div class="amenity-icon">👤</div>
-            <div class="amenity-title">Cont Personal</div>
-            <div class="amenity-sub">Rezervările tale, istoricul<br>și preferințele, în același loc</div>
-        </div>
-        <div class="amenity">
-            <div class="amenity-icon">★</div>
-            <div class="amenity-title">Rating & Recenzii</div>
-            <div class="amenity-sub">Opinii verificate de la<br>clienți reali, verificați</div>
-        </div>
-        <div class="amenity">
-            <div class="amenity-icon">◎</div>
-            <div class="amenity-title">Calendar Live</div>
-            <div class="amenity-sub">Disponibilitate în timp real,<br>fără surprize neplăcute</div>
-        </div>
-        <div class="amenity">
-            <div class="amenity-icon">⊕</div>
-            <div class="amenity-title">Galerie Foto HD</div>
-            <div class="amenity-sub">Imagini reale ale camerelor<br>și spațiilor comune</div>
-        </div>
-        <div class="amenity">
-            <div class="amenity-icon">✦</div>
-            <div class="amenity-title">Rezervare Instant</div>
-            <div class="amenity-sub">Confirmare imediată,<br>fără așteptare</div>
-        </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-hotels">—</div>
+      <div class="stat-line"></div>
+      <div class="stat-label">Hoteluri</div>
     </div>
-
-    <!-- DESTINATIONS -->
-    <section class="section" id="destinatii" style="background: var(--dark2);">
-        <div class="section-header">
-            <div>
-                <div class="section-eyebrow">Explorează</div>
-                <h2 class="section-title">Destinații <em>Populare</em></h2>
-            </div>
-        </div>
-        <div class="destinations-grid">
-            <div class="dest-card" onclick="filterByDest('București')">
-                <div class="dest-bg">🏙️</div>
-                <div class="dest-overlay"></div>
-                <div class="dest-content">
-                    <div class="dest-count">24 hoteluri</div>
-                    <div class="dest-name">București</div>
-                </div>
-            </div>
-            <div class="dest-card" onclick="filterByDest('Cluj')">
-                <div class="dest-bg">🏰</div>
-                <div class="dest-overlay"></div>
-                <div class="dest-content">
-                    <div class="dest-count">12 hoteluri</div>
-                    <div class="dest-name">Cluj-Napoca</div>
-                </div>
-            </div>
-            <div class="dest-card" onclick="filterByDest('Sinaia')">
-                <div class="dest-bg">🏔️</div>
-                <div class="dest-overlay"></div>
-                <div class="dest-content">
-                    <div class="dest-count">8 hoteluri</div>
-                    <div class="dest-name">Sinaia</div>
-                </div>
-            </div>
-            <div class="dest-card" onclick="filterByDest('Mamaia')">
-                <div class="dest-bg">🌊</div>
-                <div class="dest-overlay"></div>
-                <div class="dest-content">
-                    <div class="dest-count">16 hoteluri</div>
-                    <div class="dest-name">Mamaia</div>
-                </div>
-            </div>
-            <div class="dest-card" onclick="filterByDest('Brașov')">
-                <div class="dest-bg">🌲</div>
-                <div class="dest-overlay"></div>
-                <div class="dest-content">
-                    <div class="dest-count">10 hoteluri</div>
-                    <div class="dest-name">Brașov</div>
-                </div>
-            </div>
-            <div class="dest-card" onclick="filterByDest('Sibiu')">
-                <div class="dest-bg">⛪</div>
-                <div class="dest-overlay"></div>
-                <div class="dest-content">
-                    <div class="dest-count">7 hoteluri</div>
-                    <div class="dest-name">Sibiu</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-top">
-            <div class="footer-brand">
-                <div class="footer-logo">Hotel<span>Finder</span></div>
-                <p class="footer-tagline">
-                    Platforma premium pentru rezervări de hoteluri în România. Experiențe autentice, prețuri
-                    transparente.
-                </p>
-            </div>
-            <div>
-                <div class="footer-col-title">Navigare</div>
-                <div class="footer-links">
-                    <a href="index.html" class="footer-link">Acasă</a>
-                    <a href="show_hotels.html" class="footer-link">Toate hotelurile</a>
-                    <a href="#destinatii" class="footer-link">Destinații</a>
-                </div>
-            </div>
-            <div>
-                <div class="footer-col-title">Cont</div>
-                <div class="footer-links">
-                    <a href="login.html" class="footer-link">Autentificare</a>
-                    <a href="register.html" class="footer-link">Înregistrare</a>
-                    <a href="my_account.html" class="footer-link">Rezervările mele</a>
-                </div>
-            </div>
-            <div>
-                <div class="footer-col-title">Admin</div>
-                <div class="footer-links">
-                    <a href="login.html" class="footer-link">Login Admin</a>
-                    <a href="admin_dashboard.html" class="footer-link">Dashboard</a>
-                    <a href="add_hotel.html" class="footer-link">Adaugă hotel</a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <div class="footer-copy">© 2026 <span>HotelFinder</span>. Toate drepturile rezervate.</div>
-            <div class="footer-socials">
-                <a href="#" class="social-btn">f</a>
-                <a href="#" class="social-btn">in</a>
-                <a href="#" class="social-btn">ig</a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- TOAST -->
-    <div class="toast" id="toast">
-        <div class="toast-icon" id="toast-icon">✓</div>
-        <div>
-            <div class="toast-text" id="toast-text"></div>
-            <div class="toast-sub" id="toast-sub"></div>
-        </div>
+    <div class="stat">
+      <div class="stat-num">4.8</div>
+      <div class="stat-line"></div>
+      <div class="stat-label">Rating mediu</div>
     </div>
+    <div class="stat">
+      <div class="stat-num">24/7</div>
+      <div class="stat-line"></div>
+      <div class="stat-label">Suport</div>
+    </div>
+  </div>
 
-    <script>
-        let allHotels = [];
-        let activeFilter = 'all';
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll pentru mai mult</span>
+  </div>
+</section>
 
-        // ── CHECK SESSION ──
-        async function checkSession() {
-            try {
-                const r = await fetch('api/auth/check_session.php');
-                const d = await r.json();
-                const el = document.getElementById('nav-actions');
-                if (d.logged_in) {
-                    if (d.role === 'admin') {
-                        el.innerHTML = `
+<!-- FILTERS STRIP -->
+<div class="filters-strip" id="filters-strip">
+  <div class="filter-tab active" data-filter="all">Toate</div>
+  <div class="filters-divider"></div>
+  <div class="filter-tab" data-filter="5star">5 Stele</div>
+  <div class="filters-divider"></div>
+  <div class="filter-tab" data-filter="4star">4 Stele</div>
+  <div class="filters-divider"></div>
+  <div class="filter-tab" data-filter="spa">Spa & Wellness</div>
+  <div class="filters-divider"></div>
+  <div class="filter-tab" data-filter="business">Business</div>
+  <div class="filters-divider"></div>
+  <div class="filter-tab" data-filter="boutique">Boutique</div>
+  <div class="price-filter">
+    <label>Preț</label>
+    <select id="price-sort" onchange="sortHotels()">
+      <option value="default">Implicit</option>
+      <option value="asc">Crescător</option>
+      <option value="desc">Descrescător</option>
+    </select>
+  </div>
+</div>
+
+<!-- HOTELS SECTION -->
+<section class="section" id="hoteluri">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Selecția noastră</div>
+      <h2 class="section-title">Hoteluri <em>Recomandate</em></h2>
+    </div>
+    <a href="show_hotels.html" class="section-link">Vezi toate</a>
+  </div>
+
+  <div class="hotels-grid" id="hotels-container">
+    <div class="loader">
+      <div class="loader-ring"></div>
+      <div class="loader-text">Se încarcă hotelurile</div>
+    </div>
+  </div>
+</section>
+
+<!-- AMENITIES STRIP -->
+<div class="amenities-strip">
+  <div class="amenity">
+    <div class="amenity-icon">👤</div>
+    <div class="amenity-title">Cont Personal</div>
+    <div class="amenity-sub">Rezervările tale, istoricul<br>și preferințele, în același loc</div>
+  </div>
+  <div class="amenity">
+    <div class="amenity-icon">★</div>
+    <div class="amenity-title">Rating & Recenzii</div>
+    <div class="amenity-sub">Opinii verificate de la<br>clienți reali, verificați</div>
+  </div>
+  <div class="amenity">
+    <div class="amenity-icon">◎</div>
+    <div class="amenity-title">Calendar Live</div>
+    <div class="amenity-sub">Disponibilitate în timp real,<br>fără surprize neplăcute</div>
+  </div>
+  <div class="amenity">
+    <div class="amenity-icon">⊕</div>
+    <div class="amenity-title">Galerie Foto HD</div>
+    <div class="amenity-sub">Imagini reale ale camerelor<br>și spațiilor comune</div>
+  </div>
+  <div class="amenity">
+    <div class="amenity-icon">✦</div>
+    <div class="amenity-title">Rezervare Instant</div>
+    <div class="amenity-sub">Confirmare imediată,<br>fără așteptare</div>
+  </div>
+</div>
+
+<!-- DESTINATIONS -->
+<section class="section" id="destinatii" style="background: var(--dark2);">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Explorează</div>
+      <h2 class="section-title">Destinații <em>Populare</em></h2>
+    </div>
+  </div>
+  <div class="destinations-grid">
+    <div class="dest-card" onclick="filterByDest('București')">
+      <div class="dest-bg">🏙️</div>
+      <div class="dest-overlay"></div>
+      <div class="dest-content">
+        <div class="dest-count">24 hoteluri</div>
+        <div class="dest-name">București</div>
+      </div>
+    </div>
+    <div class="dest-card" onclick="filterByDest('Cluj')">
+      <div class="dest-bg">🏰</div>
+      <div class="dest-overlay"></div>
+      <div class="dest-content">
+        <div class="dest-count">12 hoteluri</div>
+        <div class="dest-name">Cluj-Napoca</div>
+      </div>
+    </div>
+    <div class="dest-card" onclick="filterByDest('Sinaia')">
+      <div class="dest-bg">🏔️</div>
+      <div class="dest-overlay"></div>
+      <div class="dest-content">
+        <div class="dest-count">8 hoteluri</div>
+        <div class="dest-name">Sinaia</div>
+      </div>
+    </div>
+    <div class="dest-card" onclick="filterByDest('Mamaia')">
+      <div class="dest-bg">🌊</div>
+      <div class="dest-overlay"></div>
+      <div class="dest-content">
+        <div class="dest-count">16 hoteluri</div>
+        <div class="dest-name">Mamaia</div>
+      </div>
+    </div>
+    <div class="dest-card" onclick="filterByDest('Brașov')">
+      <div class="dest-bg">🌲</div>
+      <div class="dest-overlay"></div>
+      <div class="dest-content">
+        <div class="dest-count">10 hoteluri</div>
+        <div class="dest-name">Brașov</div>
+      </div>
+    </div>
+    <div class="dest-card" onclick="filterByDest('Sibiu')">
+      <div class="dest-bg">⛪</div>
+      <div class="dest-overlay"></div>
+      <div class="dest-content">
+        <div class="dest-count">7 hoteluri</div>
+        <div class="dest-name">Sibiu</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">Hotel<span>Finder</span></div>
+      <p class="footer-tagline">
+        Platforma premium pentru rezervări de hoteluri în România. Experiențe autentice, prețuri transparente.
+      </p>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigare</div>
+      <div class="footer-links">
+        <a href="index.html" class="footer-link">Acasă</a>
+        <a href="show_hotels.html" class="footer-link">Toate hotelurile</a>
+        <a href="#destinatii" class="footer-link">Destinații</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Cont</div>
+      <div class="footer-links">
+        <a href="login.html" class="footer-link">Autentificare</a>
+        <a href="register.html" class="footer-link">Înregistrare</a>
+        <a href="my_account.html" class="footer-link">Rezervările mele</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Admin</div>
+      <div class="footer-links">
+        <a href="login.html" class="footer-link">Login Admin</a>
+        <a href="admin_dashboard.html" class="footer-link">Dashboard</a>
+        <a href="add_hotel.html" class="footer-link">Adaugă hotel</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 <span>HotelFinder</span>. Toate drepturile rezervate.</div>
+    <div class="footer-socials">
+      <a href="#" class="social-btn">f</a>
+      <a href="#" class="social-btn">in</a>
+      <a href="#" class="social-btn">ig</a>
+    </div>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✓</div>
+  <div>
+    <div class="toast-text" id="toast-text"></div>
+    <div class="toast-sub" id="toast-sub"></div>
+  </div>
+</div>
+
+<script>
+  let allHotels = [];
+  let activeFilter = 'all';
+
+  // ── CHECK SESSION ──
+  async function checkSession() {
+    try {
+      const r = await fetch('api/auth/check_session.php');
+      const d = await r.json();
+      const el = document.getElementById('nav-actions');
+      if (d.logged_in) {
+        if (d.role === 'admin') {
+          el.innerHTML = `
             <a href="admin_dashboard.html" class="btn-ghost">Dashboard Admin</a>
-            <a href="api/Auth/logout.php" class="btn-gold">Deconectare</a>`;
-                    } else {
-                        el.innerHTML = `
+            <a href="api/auth/logout.php" class="btn-gold">Deconectare</a>`;
+        } else {
+          el.innerHTML = `
             <a href="my_account.html" class="btn-ghost">Contul meu</a>
-            <a href="api/Auth/logout.php" class="btn-gold">Deconectare</a>`;
-                    }
-                }
-            } catch (e) { }
+            <a href="api/auth/logout.php" class="btn-gold">Deconectare</a>`;
         }
+      }
+    } catch(e) {}
+  }
 
-        // ── FETCH HOTELS ──
-        async function fetchHotels() {
-            try {
-                const r = await fetch('api/Hotels/get_hotels.php');
-                const data = await r.json();
-                allHotels = data;
-                document.getElementById('stat-hotels').textContent = data.length + '+';
-                renderHotels(data);
-            } catch (e) {
-                document.getElementById('hotels-container').innerHTML = `
+  // ── FETCH HOTELS ──
+  async function fetchHotels() {
+    try {
+      const r = await fetch('api/Hotels/get_hotels.php');
+      const data = await r.json();
+      allHotels = data;
+      document.getElementById('stat-hotels').textContent = data.length + '+';
+      renderHotels(data);
+    } catch(e) {
+      document.getElementById('hotels-container').innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">⚠</div>
           <div class="empty-state-text">Eroare la încărcarea hotelurilor</div>
         </div>`;
-            }
-        }
+    }
+  }
 
-        // ── RENDER ──
-        function renderHotels(hotels) {
-            const c = document.getElementById('hotels-container');
-            if (!hotels.length) {
-                c.innerHTML = `
+  // ── RENDER ──
+  function renderHotels(hotels) {
+    const c = document.getElementById('hotels-container');
+    if (!hotels.length) {
+      c.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">◎</div>
           <div class="empty-state-text">Nu s-au găsit hoteluri</div>
         </div>`;
-                return;
-            }
+      return;
+    }
 
-            c.innerHTML = '';
-            hotels.slice(0, 6).forEach((h, i) => {
-                const stars = parseInt(h.stars) || 4;
-                const starsHtml = [1, 2, 3, 4, 5].map(s =>
-                    `<span class="star${s > stars ? ' empty' : ''}">★</span>`).join('');
-                const rating = h.avg_rating ? parseFloat(h.avg_rating).toFixed(1) : '—';
-                const reviewCount = h.review_count || 0;
-                const isFeatured = i === 0;
-                const desc = h.description ? (h.description.length > 100 ? h.description.substring(0, 100) + '...' : h.description) : '';
+    c.innerHTML = '';
+    hotels.slice(0, 6).forEach((h, i) => {
+      const stars = parseInt(h.stars) || 4;
+      const starsHtml = [1,2,3,4,5].map(s =>
+        `<span class="star${s > stars ? ' empty' : ''}">★</span>`).join('');
+      const rating = h.avg_rating ? parseFloat(h.avg_rating).toFixed(1) : '—';
+      const reviewCount = h.review_count || 0;
+      const isFeatured = i === 0;
+      const desc = h.description ? (h.description.length > 100 ? h.description.substring(0,100) + '...' : h.description) : '';
 
-                const card = document.createElement('div');
-                card.className = 'hotel-card' + (isFeatured ? ' featured' : '');
-                card.style.animationDelay = (i * 0.08) + 's';
-                card.innerHTML = `
+      const card = document.createElement('div');
+      card.className = 'hotel-card' + (isFeatured ? ' featured' : '');
+      card.style.animationDelay = (i * 0.08) + 's';
+      card.innerHTML = `
         <div class="card-img">
-          <div class="card-img-inner" style="${h.image_url ? `background-image:url('${h.image_url}'); opacity:1; font-size:0;` : ''}">
-            ${h.image_url ? '' : '🏨'}
+          <div class="card-img-inner" style="${getImg(h) ? `background-image:url('${getImg(h)}'); opacity:1; font-size:0;` : ''}">
+            ${getImg(h) ? '' : '🏨'}
           </div>
           <div class="card-overlay"></div>
           <div class="card-badges">
@@ -1571,77 +979,89 @@
             </div>
           </div>
         </div>`;
-                c.appendChild(card);
-            });
-        }
+      c.appendChild(card);
+    });
+  }
 
-        // ── FILTER TABS ──
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                activeFilter = tab.dataset.filter;
-                applyFilters();
-            });
-        });
+  // ── FILTER TABS ──
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeFilter = tab.dataset.filter;
+      applyFilters();
+    });
+  });
 
-        function applyFilters() {
-            let filtered = [...allHotels];
-            if (activeFilter === '5star') filtered = filtered.filter(h => parseInt(h.stars) === 5);
-            if (activeFilter === '4star') filtered = filtered.filter(h => parseInt(h.stars) === 4);
-            renderHotels(filtered);
-        }
+  function applyFilters() {
+    let filtered = [...allHotels];
+    if (activeFilter === '5star') filtered = filtered.filter(h => parseInt(h.stars) === 5);
+    if (activeFilter === '4star') filtered = filtered.filter(h => parseInt(h.stars) === 4);
+    renderHotels(filtered);
+  }
 
-        function sortHotels() {
-            const val = document.getElementById('price-sort').value;
-            let sorted = [...allHotels];
-            if (val === 'asc') sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-            if (val === 'desc') sorted.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-            renderHotels(sorted);
-        }
+  function sortHotels() {
+    const val = document.getElementById('price-sort').value;
+    let sorted = [...allHotels];
+    if (val === 'asc')  sorted.sort((a,b) => parseFloat(a.price) - parseFloat(b.price));
+    if (val === 'desc') sorted.sort((a,b) => parseFloat(b.price) - parseFloat(a.price));
+    renderHotels(sorted);
+  }
 
-        // ── SEARCH ──
-        function doSearch() {
-            const dest = document.getElementById('search-dest').value.trim().toLowerCase();
-            if (!dest) { renderHotels(allHotels); return; }
-            const filtered = allHotels.filter(h =>
-                (h.location || '').toLowerCase().includes(dest) ||
-                (h.name || '').toLowerCase().includes(dest)
-            );
-            renderHotels(filtered);
-            document.getElementById('hoteluri').scrollIntoView({ behavior: 'smooth' });
-        }
+  // ── SEARCH ──
+  function doSearch() {
+    const dest = document.getElementById('search-dest').value.trim().toLowerCase();
+    if (!dest) { renderHotels(allHotels); return; }
+    const filtered = allHotels.filter(h =>
+      (h.location || '').toLowerCase().includes(dest) ||
+      (h.name || '').toLowerCase().includes(dest)
+    );
+    renderHotels(filtered);
+    document.getElementById('hoteluri').scrollIntoView({ behavior: 'smooth' });
+  }
 
-        function filterByDest(dest) {
-            document.getElementById('search-dest').value = dest;
-            doSearch();
-        }
+  function filterByDest(dest) {
+    document.getElementById('search-dest').value = dest;
+    doSearch();
+  }
 
-        // ── ENTER key on search ──
-        document.getElementById('search-dest').addEventListener('keydown', e => {
-            if (e.key === 'Enter') doSearch();
-        });
+  // ── ENTER key on search ──
+  document.getElementById('search-dest').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
 
-        // ── TOAST ──
-        function showToast(text, sub = '', icon = '✓') {
-            document.getElementById('toast-text').textContent = text;
-            document.getElementById('toast-sub').textContent = sub;
-            document.getElementById('toast-icon').textContent = icon;
-            const t = document.getElementById('toast');
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 4000);
-        }
+  // ── TOAST ──
+  function showToast(text, sub = '', icon = '✓') {
+    document.getElementById('toast-text').textContent = text;
+    document.getElementById('toast-sub').textContent = sub;
+    document.getElementById('toast-icon').textContent = icon;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
 
-        // ── INIT ──
-        document.addEventListener('DOMContentLoaded', () => {
-            checkSession();
-            fetchHotels();
-            const today = new Date().toISOString().split('T')[0];
-            const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-            document.getElementById('search-checkin').value = today;
-            document.getElementById('search-checkout').value = tomorrow;
-        });
-    </script>
+  // ── INIT ──
+  // Parseaza image_url indiferent de format (URL simplu sau JSON array)
+  function getImg(h) {
+    if (!h.image_url) return null;
+    try {
+      const parsed = JSON.parse(h.image_url);
+      if (Array.isArray(parsed) && parsed.length) return parsed[0];
+      if (typeof parsed === 'string') return parsed;
+    } catch(e) {
+      if (typeof h.image_url === 'string' && h.image_url.startsWith('http')) return h.image_url;
+    }
+    return null;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    checkSession();
+    fetchHotels();
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    document.getElementById('search-checkin').value = today;
+    document.getElementById('search-checkout').value = tomorrow;
+  });
+</script>
 </body>
-
 </html>

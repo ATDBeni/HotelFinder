@@ -353,40 +353,93 @@
   // ── LOAD HOTEL DATA FOR EDIT ──
   async function loadHotelData() {
     try {
-      const d = await fetch(`api/Hotels/get_hotels.php?id=${editId}`).then(r => r.json());
-      if (d.error) { window.location.href = 'admin_dashboard.html'; return; }
+      // get_hotels.php returneaza toate hotelurile ca array
+      // Facem fetch si gasim hotelul dupa editId
+      const r = await fetch('api/Hotels/get_hotels.php');
+      const text = await r.text();
 
-      document.getElementById('name').value          = d.name || '';
-      document.getElementById('location').value      = d.location || '';
-      document.getElementById('price').value         = d.price || '';
-      document.getElementById('description').value   = d.description || '';
-      document.getElementById('checkin_time').value  = d.checkin_time || '14:00';
-      document.getElementById('checkout_time').value = d.checkout_time || '12:00';
-      document.getElementById('pets').value          = d.pets || 'request';
-      document.getElementById('is_new').value        = d.is_new || '0';
-      document.getElementById('contact_phone').value = d.contact_phone || '';
-      document.getElementById('website').value       = d.website || '';
+      let allData;
+      try { allData = JSON.parse(text); }
+      catch(e) {
+        document.getElementById('page-loader').classList.add('hidden');
+        showAlert('Raspuns invalid de la server.');
+        return;
+      }
+
+      // Suporta array direct SAU { hotels: [...] }
+      const hotelsList = Array.isArray(allData) ? allData
+                       : (allData.hotels || allData.data || []);
+
+      // Gaseste hotelul cu id-ul dorit
+      let d = hotelsList.find(h => String(h.id) === String(editId));
+
+      if (!d) {
+        document.getElementById('page-loader').classList.add('hidden');
+        showAlert('Hotelul #' + editId + ' nu a fost gasit.');
+        return;
+      }
+
+      setField('name',         d.name);
+      setField('location',     d.location);
+      setField('price',        d.price);
+      setField('description',  d.description);
+      setField('checkin_time', d.checkin_time  || '14:00');
+      setField('checkout_time',d.checkout_time || '12:00');
+      setField('contact_phone',d.contact_phone);
+      setField('website',      d.website);
+      setSelect('pets',   d.pets   || 'request');
+      setSelect('is_new', d.is_new != null ? String(d.is_new) : '0');
 
       setStar(parseInt(d.stars) || 4);
 
-      // Images
-      const imgs = d.images || [];
+      // Imagini - gestioneaza orice format
+      let imgs = [];
+      const rawImg = (d.images && d.images.length) ? d.images : d.image_url || null;
+      if (rawImg) {
+        if (Array.isArray(rawImg)) {
+          imgs = rawImg;
+        } else if (typeof rawImg === 'string') {
+          try {
+            const parsed = JSON.parse(rawImg);
+            imgs = Array.isArray(parsed) ? parsed : (rawImg.startsWith('http') ? [rawImg] : []);
+          } catch(e) {
+            if (rawImg.startsWith('http')) imgs = [rawImg];
+          }
+        }
+      }
+
       const container = document.getElementById('image-urls');
       container.innerHTML = '';
-      (imgs.length ? imgs : ['']).forEach(url => {
-        const row = makeImgRow(url);
-        container.appendChild(row);
-      });
+      (imgs.length ? imgs : ['']).forEach(url => container.appendChild(makeImgRow(url)));
       updatePreviews();
 
-      // Amenities
-      if (d.amenities) {
-        d.amenities.split(',').map(a => a.trim()).forEach(key => {
+      // Facilitati
+      if (d.amenities && typeof d.amenities === 'string') {
+        d.amenities.split(',').map(a => a.trim()).filter(Boolean).forEach(key => {
           const el = document.getElementById(`amen-${key}`);
-          if (el) { el.classList.add('selected'); selAmenities.add(key); el.querySelector('.amenity-checkbox').textContent = '✓'; }
+          if (el) {
+            el.classList.add('selected');
+            selAmenities.add(key);
+            el.querySelector('.amenity-checkbox').textContent = '\u2713';
+          }
         });
       }
-    } catch(e) { console.error(e); }
+    } catch(e) {
+      console.error('loadHotelData error:', e);
+      showAlert('Eroare la incarcarea datelor: ' + e.message);
+    }
+  }
+
+  function setField(id, val) {
+    const el = document.getElementById(id);
+    if (el && val != null) el.value = val;
+  }
+
+  function setSelect(id, val) {
+    const el = document.getElementById(id);
+    if (!el || val == null) return;
+    const opt = el.querySelector(`option[value="${val}"]`);
+    if (opt) el.value = val;
   }
 
   // ── STARS ──
