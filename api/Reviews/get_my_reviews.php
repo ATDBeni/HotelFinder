@@ -3,7 +3,9 @@ session_start();
 header('Content-Type: application/json');
 require_once '../db.php';
 
-if (!isset($_SESSION['user_id'])) { echo json_encode(['reviews'=>[]]); exit; }
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['reviews' => []]); exit;
+}
 
 try {
     $stmt = $pdo->prepare("
@@ -17,7 +19,7 @@ try {
     $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($reviews as &$r) {
-        if ($r['image_url']) {
+        if (!empty($r['image_url'])) {
             $dec = json_decode($r['image_url'], true);
             if (is_array($dec)) $r['image_url'] = $dec[0] ?? null;
         }
@@ -25,5 +27,5 @@ try {
 
     echo json_encode(['reviews' => $reviews]);
 } catch (PDOException $e) {
-    echo json_encode(['reviews' => []]);
+    echo json_encode(['reviews' => [], 'error' => $e->getMessage()]);
 }

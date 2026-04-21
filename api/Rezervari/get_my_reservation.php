@@ -8,7 +8,7 @@ $uid = $_SESSION['user_id'];
 
 try {
     $stmt = $pdo->prepare("
-        SELECT r.*, h.name AS hotel_name, h.image_url, h.city,
+        SELECT r.*, h.name AS hotel_name, h.image_url, h.location,
                (SELECT COUNT(*) FROM reviews rv WHERE rv.hotel_id = r.hotel_id AND rv.user_id = r.user_id) AS has_review
         FROM rezervari r
         LEFT JOIN hotels h ON h.id = r.hotel_id

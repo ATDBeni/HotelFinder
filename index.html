@@ -942,6 +942,12 @@
       const isFeatured = i === 0;
       const desc = h.description ? (h.description.length > 100 ? h.description.substring(0,100) + '...' : h.description) : '';
 
+      // Debug: vezi cum arata datele hotelului
+      if (i === 0) console.log('[index] primul hotel din date:', h);
+
+      // id-ul poate fi 'id', 'hotel_id', 'ID' etc - detectam automat
+      const hotelId = h.id || h.hotel_id || h.ID || h.HotelID || null;
+
       const card = document.createElement('div');
       card.className = 'hotel-card' + (isFeatured ? ' featured' : '');
       card.style.animationDelay = (i * 0.08) + 's';
@@ -974,8 +980,8 @@
               <span class="price-night"> RON/noapte</span>
             </div>
             <div class="card-actions">
-              <a href="detalii_hotel.html?id=${h.id}" class="btn-icon" title="Detalii">◎</a>
-              <a href="rezervare.html?hotel_id=${h.id}" class="btn-reserve">Rezervă</a>
+              <a href="detalii_hotel.html?id=${hotelId}" class="btn-icon" title="Detalii">◎</a>
+              <a href="rezervare.html?hotel_id=${hotelId}" class="btn-reserve">Rezervă</a>
             </div>
           </div>
         </div>`;

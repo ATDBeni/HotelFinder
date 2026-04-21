@@ -629,83 +629,112 @@
 
   // ── INIT ──
   async function init() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const hotelId = urlParams.get('hotel_id'); // verifică dacă variabila e hotel_id sau id în URL
-
-  if (!hotelId) { 
-    window.location.href = 'index.html'; 
-    return; 
-  }
-
-  try {
-    const results = await Promise.all([
-      fetch(`api/Hotels/get_hotels.php?id=${hotelId}`).then(r => r.json()).catch(() => null),
-      fetch('api/Auth/check_session.php').then(r => r.json()).catch(() => ({ logged_in: false }))
-    ]);
-
-    // Din poza ta, hotelData e un ARRAY, deci luăm elementul 0
-    const rawData = results[0];
-    hotelData = Array.isArray(rawData) ? rawData[0] : rawData;
-    session = results[1];
-
-    console.log("Hotel selectat:", hotelData);
-
-    if (!hotelData || hotelData.error) { 
-      alert("Hotelul nu a fost găsit!");
-      window.location.href = 'index.html'; 
-      return; 
+    console.log('[rezervare] hotelId din URL:', hotelId);
+    if (!hotelId || hotelId === 'undefined' || hotelId === 'null') {
+      console.error('[rezervare] hotel_id invalid in URL:', window.location.search);
+      window.location.href = 'index.html';
+      return;
     }
 
-    // APELEZI FUNCȚIILE DOAR DACĂ EXISTĂ
-    renderHotelCard();
-    // prefillDates();
-    prefillUser();
-    
-    if (typeof initRoomPrices === "function") initRoomPrices();
+    // Fetch sesiune
+    session = await fetch('api/auth/check_session.php')
+      .then(r => r.json()).catch(() => ({ logged_in: false }));
 
+    // Fetch hotel — get_hotels.php returneaza toate, filtram dupa id
+    try {
+      const r    = await fetch('api/Hotels/get_hotels.php');
+      const text = await r.text();
+      const raw  = JSON.parse(text);
+      const list = Array.isArray(raw) ? raw : (raw.hotels || raw.data || []);
+
+      hotelData = list.find(h =>
+        String(h.id)       === String(hotelId) ||
+        String(h.hotel_id) === String(hotelId) ||
+        String(h.ID)       === String(hotelId)
+      );
+
+      console.log('[rezervare] hotel gasit:', hotelData);
+    } catch(e) {
+      console.error('[rezervare] eroare fetch hotel:', e);
+      hotelData = null;
+    }
+
+    if (!hotelData) {
+      console.error('[rezervare] hotelul cu id', hotelId, 'nu a fost gasit');
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Normalizeaza price — poate fi string cu virgula sau spatii
+    hotelData.price = parseFloat(String(hotelData.price).replace(',', '.')) || 0;
+    console.log('[rezervare] pret hotel:', hotelData.price);
+
+    // Parseaza imagini
+    if (hotelData.image_url && !hotelData.images) {
+      try {
+        const parsed = JSON.parse(hotelData.image_url);
+        hotelData.images = Array.isArray(parsed) ? parsed : [hotelData.image_url];
+      } catch(e) {
+        hotelData.images = hotelData.image_url ? [hotelData.image_url] : [];
+      }
+    }
+
+    renderHotelCard();
+    prefillDates();
+    prefillUser();
+    initRoomPrices();
     document.getElementById('back-link').href = `detalii_hotel.html?id=${hotelId}`;
     document.getElementById('page-loader').classList.add('hidden');
-
-  } catch (err) {
-    console.error("Eroare critică la inițializare:", err);
   }
-}
 
-// ASIGURĂ-TE CĂ ACEASTĂ FUNCȚIE ESTE SCRISĂ EXACT AȘA
-function renderHotelCard() {
-  const nameEl = document.getElementById('hc-name');
-  if (nameEl) nameEl.textContent = hotelData.name;
-  
-  const locEl = document.getElementById('hc-location');
-  if (locEl) locEl.textContent = hotelData.city || hotelData.location || 'România';
-  
-  // Dacă ai prețul în card
-  const priceEl = document.getElementById('hc-price');
-  if (priceEl) priceEl.textContent = hotelData.price + " RON";
-}
+  function renderHotelCard() {
+    document.getElementById('hc-name').textContent     = hotelData.name;
+    document.getElementById('hc-location').textContent = hotelData.location || 'România';
+    const img = hotelData.images && hotelData.images.length ? hotelData.images[0] : null;
+    if (img) document.getElementById('hc-img').innerHTML = `<img src="${img}" alt="${hotelData.name}" onerror="this.parentElement.textContent='🏨'">`;
+  }
 
+  function prefillDates() {
+    const ci = params.get('checkin');
+    const co = params.get('checkout');
+    const g  = params.get('guests') || '2';
+    if (ci) document.getElementById('checkin').value  = ci;
+    if (co) document.getElementById('checkout').value = co;
+    document.getElementById('guests').value = g;
+    updateSidebar();
+  }
 
-function prefillUser() {
-  // Verificăm dacă session există ca să nu mai dea eroarea aia cu "undefined"
-  if (session && session.logged_in) {
-    const nameParts = (session.name || '').split(' ');
-    if (nameParts[0]) document.getElementById('first-name').value = nameParts[0];
-    if (nameParts.length > 1) document.getElementById('last-name').value = nameParts.slice(1).join(' ');
-    document.getElementById('email').value = session.email || '';
-  } else {
-    const noticeWrap = document.getElementById('guest-notice-wrap');
-    if (noticeWrap) {
-      noticeWrap.innerHTML = `
-        <div class="guest-notice">
-          <div class="gn-icon">✦</div>
-          <div class="gn-text">Rezervi ca oaspete. <a href="login.html">Autentifică-te</a> sau <a href="register.html">creează un cont</a> pentru a vedea rezervarea ulterior în contul tău.</div>
+  function prefillUser() {
+    if (session && session.logged_in) {
+      // Pre-fill from session
+      const name = (session.name || '').split(' ');
+      if (name[0]) document.getElementById('first-name').value = name[0];
+      if (name[1]) document.getElementById('last-name').value  = name.slice(1).join(' ');
+      document.getElementById('email').value = session.email || '';
+    } else {
+      // Nu e logat — arata warning proeminent si blocheaza butonul de confirmare
+      document.getElementById('guest-notice-wrap').innerHTML = `
+        <div class="guest-notice" style="border-color:rgba(201,168,76,0.5); background:rgba(201,168,76,0.07);">
+          <div class="gn-icon" style="font-size:22px;">⚠</div>
+          <div class="gn-text">
+            <strong style="color:var(--gold);">Trebuie să fii autentificat pentru a rezerva.</strong><br>
+            <a href="login.html">Autentifică-te</a> sau <a href="register.html">creează un cont gratuit</a> —
+            rezervarea ta va fi salvată automat în contul tău.
+          </div>
         </div>`;
+
+      // Dezactiveaza butonul de confirmare din pasul 3
+      const confirmBtn = document.getElementById('confirm-btn');
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.style.opacity = '0.4';
+        confirmBtn.title = 'Trebuie sa fii autentificat';
+      }
     }
   }
-}
 
   function initRoomPrices() {
-    const base = parseFloat(hotelData.price) || 0;
+    const base = parseFloat(String(hotelData.price || 0).replace(',', '.')) || 0;
     document.getElementById('price-standard').textContent = base + ' RON';
     document.getElementById('price-deluxe').textContent   = (base + 50) + ' RON';
     document.getElementById('price-suite').textContent    = (base + 120) + ' RON';
@@ -734,7 +763,8 @@ function prefillUser() {
 
   function calcTotal(nights) {
     if (!nights || !hotelData) return 0;
-    const base    = (parseFloat(hotelData.price) + roomExtra) * nights;
+    const price   = parseFloat(String(hotelData.price || 0).replace(',', '.')) || 0;
+    const base    = (price + roomExtra) * nights;
     const extras  = servicesExtra;
     const tax     = Math.round((base + extras) * 0.09);
     return base + extras + tax;
@@ -809,7 +839,7 @@ function prefillUser() {
     const ci     = document.getElementById('checkin').value;
     const co     = document.getElementById('checkout').value;
     const nights = calcNights();
-    const base   = parseFloat(hotelData.price) + roomExtra;
+    const base   = (parseFloat(String(hotelData.price || 0).replace(',', '.')) || 0) + roomExtra;
     const subtotal = base * nights;
     const tax    = Math.round((subtotal + servicesExtra) * 0.09);
     const total  = subtotal + servicesExtra + tax;
@@ -852,7 +882,7 @@ function prefillUser() {
     btn.classList.add('loading'); btn.disabled = true;
 
     const nights = calcNights();
-    const base   = (parseFloat(hotelData.price) + roomExtra) * nights;
+    const base   = ((parseFloat(String(hotelData.price || 0).replace(',', '.')) || 0) + roomExtra) * nights;
     const tax    = Math.round((base + servicesExtra) * 0.09);
     const total  = base + servicesExtra + tax;
 
@@ -875,6 +905,12 @@ function prefillUser() {
     try {
       const r    = await fetch('api/Rezervari/create_rezervare.php', { method: 'POST', body });
       const data = await r.json();
+
+      // Daca nu e logat, redirecteaza la login
+      if (data.redirect) {
+        window.location.href = data.redirect + '?return=rezervare.html' + window.location.search.replace('?','&');
+        return;
+      }
 
       if (data.success) {
         // Hide steps

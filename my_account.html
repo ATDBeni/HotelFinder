@@ -280,7 +280,7 @@
   <div class="nav-right">
     <span class="nav-greeting">Bun venit, <span id="nav-name">—</span></span>
     <a href="index.html" class="btn-ghost">Hoteluri</a>
-    <a href="api//auth/logout.php" class="btn-gold">Deconectare</a>
+    <a href="api/auth/logout.php" class="btn-gold">Deconectare</a>
   </div>
 </nav>
 
@@ -327,7 +327,7 @@
       <a class="side-item" href="index.html">
         <span class="side-icon">←</span> Înapoi la hoteluri
       </a>
-      <a class="side-item" href="api//auth/check_session.php" style="color:var(--red); opacity:0.7;">
+      <a class="side-item" href="api/auth/logout.php" style="color:var(--red); opacity:0.7;">
         <span class="side-icon">⊗</span> Deconectare
       </a>
     </div>
@@ -491,7 +491,7 @@
   // ── INIT ──
   async function init() {
     try {
-      session = await fetch('api/Auth/check_session.php').then(r => r.json());
+      session = await fetch('api/auth/check_session.php').then(r => r.json());
       if (!session.logged_in || session.role !== 'client') {
         window.location.href = 'login.html'; return;
       }
@@ -740,7 +740,7 @@
     body.append('id', cancelTarget);
 
     try {
-      const r    = await fetch('api/Rezervari/cancel_rezervation.php', { method: 'POST', body });
+      const r    = await fetch('api/Rezervari/cancel_reservation.php', { method: 'POST', body });
       const data = await r.json();
       if (data.success) {
         closeModal();
