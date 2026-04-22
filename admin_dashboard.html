@@ -359,9 +359,9 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Cod</th><th>Client</th><th>Hotel</th><th>Check-in</th><th>Total</th><th>Status</th><th>Acțiuni</th>
+            <th>Cod</th><th>Client</th><th>Hotel</th><th>Check-in</th><th>Persoane</th><th>Detalii</th><th>Total</th><th>Status</th><th>Acțiuni</th>
           </tr></thead>
-          <tbody id="recent-rez-tbody"><tr><td colspan="7" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+          <tbody id="recent-rez-tbody"><tr><td colspan="9" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -410,9 +410,9 @@
         </div>
         <table>
           <thead><tr>
-            <th>Cod</th><th>Client</th><th>Hotel</th><th>Check-in</th><th>Check-out</th><th>Nopți</th><th>Total</th><th>Status</th><th>Acțiuni</th>
+            <th>Cod</th><th>Client</th><th>Hotel</th><th>Check-in</th><th>Check-out</th><th>Nopți</th><th>Persoane</th><th>Detalii</th><th>Total</th><th>Status</th><th>Acțiuni</th>
           </tr></thead>
-          <tbody id="rez-tbody"><tr><td colspan="9" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
+          <tbody id="rez-tbody"><tr><td colspan="11" class="table-empty"><div class="loader-ring" style="width:24px;height:24px;border-width:1px;margin:0 auto;"></div></td></tr></tbody>
         </table>
         <div class="pagination" id="rez-pagination"></div>
       </div>
@@ -626,7 +626,6 @@
       return;
     }
     tbody.innerHTML = hotels.map(h => {
-      
       const imgSrc  = getFirstImage(h.image_url);
       const imgHtml = imgSrc
         ? `<img src="${imgSrc}" style="width:48px;height:36px;object-fit:cover;border-radius:1px;" onerror="this.style.display='none'">`
@@ -663,15 +662,25 @@
 
   function renderRecentRez(list) {
     const tbody = document.getElementById('recent-rez-tbody');
-    if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Nicio rezervare.</td></tr>`; return; }
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="9" class="table-empty">Nicio rezervare.</td></tr>`; return; }
     const statusMap = { pending:{cls:'badge-pending',label:'Așteptare'}, confirmed:{cls:'badge-confirmed',label:'Confirmată'}, cancelled:{cls:'badge-cancelled',label:'Anulată'}, completed:{cls:'badge-completed',label:'Finalizată'} };
     tbody.innerHTML = list.map(r => {
       const st = statusMap[r.status] || statusMap.pending;
+      const ov_pers = (r.children > 0)
+        ? `${r.guests||0} adulți, ${r.children} copii`
+        : `${r.guests||0} adulți`;
+      const ov_det = [
+        r.room_type        ? formatRoom(r.room_type) : '',
+        r.special_requests ? r.special_requests      : ''
+      ].filter(Boolean).join(' · ') || '—';
+
       return `<tr>
         <td><span class="td-code">${r.booking_code||'#'+r.id}</span></td>
         <td>${r.first_name} ${r.last_name}</td>
         <td>${r.hotel_name||'—'}</td>
         <td>${formatDate(r.checkin_date)}</td>
+        <td style="white-space:nowrap;">${ov_pers}</td>
+        <td style="max-width:180px;font-size:11px;color:var(--text-faint);">${ov_det}</td>
         <td><span class="td-price">${parseFloat(r.total_price||0).toLocaleString('ro-RO')}</span> RON</td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><div class="btn-row-sm">
@@ -684,10 +693,19 @@
 
   function renderRezTable(list) {
     const tbody = document.getElementById('rez-tbody');
-    if (!list.length) { tbody.innerHTML = `<tr><td colspan="9" class="table-empty"><div class="table-empty-icon">◻</div>Nicio rezervare.</td></tr>`; return; }
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="11" class="table-empty"><div class="table-empty-icon">◻</div>Nicio rezervare.</td></tr>`; return; }
     const statusMap = { pending:{cls:'badge-pending',label:'Așteptare'}, confirmed:{cls:'badge-confirmed',label:'Confirmată'}, cancelled:{cls:'badge-cancelled',label:'Anulată'}, completed:{cls:'badge-completed',label:'Finalizată'} };
     tbody.innerHTML = list.map(r => {
       const st = statusMap[r.status] || statusMap.pending;
+      const adults   = r.guests   || 0;
+      const children = r.children || 0;
+      const persoane = children > 0 ? `${adults} adulți, ${children} copii` : `${adults} adulți`;
+      const details  = [
+        r.room_type    ? `Camera: ${formatRoom(r.room_type)}` : '',
+        r.services     ? `Servicii: ${r.services}` : '',
+        r.special_requests ? `Mențiuni: ${r.special_requests}` : ''
+      ].filter(Boolean).join(' · ') || '—';
+
       return `<tr>
         <td><span class="td-code">${r.booking_code||'#'+r.id}</span></td>
         <td>${r.first_name} ${r.last_name}<br><span style="font-size:10px;color:var(--text-faint);">${r.email}</span></td>
@@ -695,6 +713,8 @@
         <td>${formatDate(r.checkin_date)}</td>
         <td>${formatDate(r.checkout_date)}</td>
         <td>${r.nights||'—'}</td>
+        <td style="white-space:nowrap;">${persoane}</td>
+        <td style="max-width:200px;font-size:11px;line-height:1.5;color:var(--text-faint);">${details}</td>
         <td><span class="td-price">${parseFloat(r.total_price||0).toLocaleString('ro-RO')}</span> RON</td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><div class="btn-row-sm">
@@ -804,7 +824,7 @@
   async function unblock(id) {
     const body = new FormData(); body.append('id', id);
     try {
-      const r = await fetch('api/Disponibilitate/remove_block.php', { method: 'POST', body });
+      const r = await fetch('api/remove_block.php', { method: 'POST', body });
       const d = await r.json();
       if (d.success) { showToast('Dată deblocată!', '✓'); loadBlocked(); }
     } catch(e) {}
@@ -898,6 +918,10 @@
   function formatDate(str) {
     if (!str) return '—';
     return new Date(str).toLocaleDateString('ro-RO', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function formatRoom(t) {
+    const map = { standard:'Standard', deluxe:'Deluxe', suite:'Suite Executivă' };
+    return map[t] || t || '—';
   }
   function timeAgo(str) {
     if (!str) return '';
