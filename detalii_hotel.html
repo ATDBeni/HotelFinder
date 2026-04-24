@@ -619,6 +619,7 @@
           Rezervă acum
         </a>
         <div class="booking-note">Anulare gratuită · Fără taxe ascunse</div>
+        <div id="rooms-info" style="text-align:center; font-size:10px; font-weight:500; letter-spacing:0.1em; margin-top:8px; text-transform:uppercase;"></div>
       </div>
 
       <div class="info-card">
@@ -890,7 +891,27 @@
     try {
       const r    = await fetch(`api/Disponibilitate/get_availability.php?hotel_id=${hotelId}`);
       const data = await r.json();
-      blockedDates = data.blocked || [];
+      blockedDates  = data.blocked     || [];
+      const totalRooms = data.total_rooms || 0;
+      const dateCounts = data.date_counts || {};
+
+      // Arata camere disponibile in sidebar
+      const roomsEl = document.getElementById('rooms-info');
+      if (roomsEl && totalRooms > 0) {
+        const today = new Date().toISOString().split('T')[0];
+        const occupiedToday = dateCounts[today] || 0;
+        const free = Math.max(0, totalRooms - occupiedToday);
+        if (free === 0) {
+          roomsEl.textContent = 'Complet ocupat azi';
+          roomsEl.style.color = 'var(--red)';
+        } else if (free <= 3) {
+          roomsEl.textContent = `⚠ Doar ${free} camere libere!`;
+          roomsEl.style.color = '#E09052';
+        } else {
+          roomsEl.textContent = `${free} din ${totalRooms} camere disponibile`;
+          roomsEl.style.color = 'var(--green)';
+        }
+      }
     } catch(e) { blockedDates = []; }
   }
 

@@ -7,14 +7,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Metoda invalida.']); exit;
 }
 
-// Daca nu e logat, refuza rezervarea
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
-        'success' => false,
-        'message' => 'Trebuie sa fii autentificat pentru a face o rezervare.',
+        'success'  => false,
+        'message'  => 'Trebuie sa fii autentificat pentru a face o rezervare.',
         'redirect' => 'login.html'
-    ]);
-    exit;
+    ]); exit;
 }
 
 $hotel_id   = intval($_POST['hotel_id']   ?? 0);
@@ -31,29 +29,49 @@ $requests   = trim($_POST['requests']     ?? '');
 $services   = trim($_POST['services']     ?? '');
 $total      = floatval($_POST['total_price'] ?? 0);
 $nights     = intval($_POST['nights']     ?? 0);
-$user_id    = $_SESSION['user_id']; // intotdeauna din sesiune
+$user_id    = $_SESSION['user_id'];
 
 if (!$hotel_id || !$checkin || !$checkout || !$first_name || !$last_name || !$email) {
     echo json_encode(['success' => false, 'message' => 'Date incomplete.']); exit;
 }
-
 if (strtotime($checkout) <= strtotime($checkin)) {
     echo json_encode(['success' => false, 'message' => 'Datele de sejur sunt invalide.']); exit;
 }
 
 try {
-    // Verifica disponibilitate
-    $check = $pdo->prepare("
-        SELECT COUNT(*) FROM rezervari
-        WHERE hotel_id = ?
-          AND status IN ('confirmed','pending')
-          AND NOT (checkout_date <= ? OR checkin_date >= ?)
-    ");
-    $check->execute([$hotel_id, $checkin, $checkout]);
-    if ($check->fetchColumn() > 0) {
-        echo json_encode(['success' => false, 'message' => 'Hotelul nu este disponibil in perioada selectata.']); exit;
+    // ── Ia numarul total de camere al hotelului ──
+    $hotelStmt = $pdo->prepare("SELECT total_rooms, name FROM hotels WHERE id = ?");
+    $hotelStmt->execute([$hotel_id]);
+    $hotel = $hotelStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$hotel) {
+        echo json_encode(['success' => false, 'message' => 'Hotelul nu exista.']); exit;
     }
 
+    $total_rooms = intval($hotel['total_rooms'] ?? 1);
+
+    // ── Numara rezervarile active care se suprapun cu perioada dorita ──
+    $overlapStmt = $pdo->prepare("
+        SELECT COUNT(*) FROM rezervari
+        WHERE hotel_id = ?
+          AND status IN ('confirmed', 'pending')
+          AND checkin_date  < ?
+          AND checkout_date > ?
+    ");
+    $overlapStmt->execute([$hotel_id, $checkout, $checkin]);
+    $activeRez = intval($overlapStmt->fetchColumn());
+
+    // ── Verifica daca mai sunt camere libere ──
+    $freeRooms = $total_rooms - $activeRez;
+
+    if ($freeRooms <= 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Ne pare rau, toate cele {$total_rooms} camere ale hotelului \"{$hotel['name']}\" sunt ocupate in perioada selectata. Te rugam alege alte date."
+        ]); exit;
+    }
+
+    // ── Creeaza rezervarea ──
     $code = 'HF-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
     $cols = $pdo->query("SHOW COLUMNS FROM rezervari")->fetchAll(PDO::FETCH_COLUMN);
 
@@ -69,7 +87,12 @@ try {
 
     $pdo->prepare("$sql) $vals)")->execute($params);
 
-    echo json_encode(['success' => true, 'id' => $pdo->lastInsertId(), 'code' => $code]);
+    echo json_encode([
+        'success'    => true,
+        'id'         => $pdo->lastInsertId(),
+        'code'       => $code,
+        'free_rooms' => $freeRooms - 1  // camere ramase dupa aceasta rezervare
+    ]);
 
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

@@ -197,6 +197,11 @@
         <input class="field-input" type="number" id="price" min="1" placeholder="450" required>
       </div>
       <div class="field-group">
+        <label class="field-label">Număr camere disponibile <span class="req">*</span></label>
+        <input class="field-input" type="number" id="total_rooms" min="1" max="999" placeholder="10" value="10" required>
+        <div class="field-hint">Câți clienți pot rezerva simultan în aceeași perioadă.</div>
+      </div>
+      <div class="field-group">
         <label class="field-label">Clasificare stele</label>
         <div class="stars-picker" id="stars-picker">
           <button type="button" class="star-pick-btn active" data-val="1" onclick="setStar(1)">★</button>
@@ -389,6 +394,7 @@
       setField('website',      d.website);
       setSelect('pets',   d.pets   || 'request');
       setSelect('is_new', d.is_new != null ? String(d.is_new) : '0');
+      setField('total_rooms', d.total_rooms || 10);
 
       setStar(parseInt(d.stars) || 4);
 
@@ -510,6 +516,7 @@
     body.append('checkout_time',document.getElementById('checkout_time').value);
     body.append('pets',         document.getElementById('pets').value);
     body.append('is_new',       document.getElementById('is_new').value);
+    body.append('total_rooms',  document.getElementById('total_rooms').value || '10');
     body.append('contact_phone',document.getElementById('contact_phone').value.trim());
     body.append('website',      document.getElementById('website').value.trim());
     if (editId) body.append('id', editId);
