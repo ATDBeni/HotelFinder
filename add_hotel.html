@@ -340,19 +340,24 @@
   function renderAmenities() {
     const grid = document.getElementById('amenities-grid');
     grid.innerHTML = AMENITIES.map(a => `
-      <label class="amenity-check" id="amen-${a.key}" onclick="toggleAmenity('${a.key}', this)">
-        <input type="checkbox" value="${a.key}">
-        <div class="amenity-checkbox"></div>
+      <div class="amenity-check" id="amen-${a.key}" onclick="toggleAmenity('${a.key}', this)">
+        <div class="amenity-checkbox" id="cb-${a.key}"></div>
         <span class="amenity-icon">${a.icon}</span>
         <span class="amenity-label">${a.label}</span>
-      </label>`).join('');
+      </div>`).join('');
   }
 
   function toggleAmenity(key, el) {
-    el.classList.toggle('selected');
-    const cb = el.querySelector('.amenity-checkbox');
-    if (el.classList.contains('selected')) { selAmenities.add(key); cb.textContent = '✓'; }
-    else { selAmenities.delete(key); cb.textContent = ''; }
+    const isSelected = el.classList.contains('selected');
+    if (isSelected) {
+      el.classList.remove('selected');
+      selAmenities.delete(key);
+      document.getElementById('cb-' + key).textContent = '';
+    } else {
+      el.classList.add('selected');
+      selAmenities.add(key);
+      document.getElementById('cb-' + key).textContent = '✓';
+    }
   }
 
   // ── LOAD HOTEL DATA FOR EDIT ──
@@ -423,10 +428,11 @@
       if (d.amenities && typeof d.amenities === 'string') {
         d.amenities.split(',').map(a => a.trim()).filter(Boolean).forEach(key => {
           const el = document.getElementById(`amen-${key}`);
+          const cb = document.getElementById(`cb-${key}`);
           if (el) {
             el.classList.add('selected');
             selAmenities.add(key);
-            el.querySelector('.amenity-checkbox').textContent = '\u2713';
+            if (cb) cb.textContent = '✓';
           }
         });
       }
